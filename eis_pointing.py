@@ -6,6 +6,12 @@ import numpy as np
 
 from utils import cli
 from utils import files
+from utils import num
+from utils.idl import SSWFunction
+
+# Long IDL list inputs are split into into
+# smaller chunks to avoid bizarre bugs.
+IDL_CHUNKS = 25
 
 def make(targets, sources, method, *args, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
@@ -41,7 +47,27 @@ def make(targets, sources, method, *args, **kwargs):
         cli.print_now( 'skipping', method.__name__)
 
 def prepare_data(l1_files, l0_files):
-    pass
+    ''' Apply eis_prep to the l0 fits given in input.
+
+    The level 0 fits are read from the locations provided in `l0_files`, and
+    then are ingested into the EIS data directory [see EIS SWN #18].
+
+    Since the files are ingested using `eis_ingest`, the paths in `l1_files`
+    are ignored, but the parameter is kept for compatibility with `make()`.
+
+    Parameters
+    ==========
+    l1_files : list of str
+        List of absolute paths to the l1 fits to be prepared.
+    l0_files : list of str
+        List of absolute paths to the l0 fits from which to prepare the l1
+        files.
+    '''
+    if not l0_files:
+        return
+    for fp in num.chunks(l0_files, IDL_CHUNKS):
+        prep = SSWFunction('prep', arguments=[fp], instruments='eis')
+        out, err = prep.run()
 
 def export_windata(wd_files, l1_files, aia_band):
     pass
