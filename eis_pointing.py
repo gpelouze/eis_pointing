@@ -70,7 +70,24 @@ def prepare_data(l1_files, l0_files):
         out, err = prep.run()
 
 def export_windata(wd_files, l1_files, aia_band):
-    pass
+    ''' Run export_windata.pro to save windata objects from a list of l1_files.
+
+    Parameters
+    ==========
+    l1_files : list of str
+        List of absolute paths to the l1 fits to be prepared.
+    l0_files : list of str
+        List of absolute paths to the l0 fits from which to prepare the l1
+        files.
+    '''
+    if not wd_files:
+        return
+    for fp in num.chunks(list(zip(wd_files, l1_files)), IDL_CHUNKS):
+        wd = [f[0] for f in fp]
+        l1 = [f[1] for f in fp]
+        prep = SSWFunction('export_windata',
+            arguments=[wd, l1, aia_band], instruments='eis')
+        out, err = prep.run()
 
 def eis_aia_emission(aia_emission_files, wd_file):
     pass
