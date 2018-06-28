@@ -2,12 +2,15 @@
 
 import os
 
+from astropy.io import fits
 import numpy as np
 
 from utils import cli
 from utils import files
+from utils import idl
 from utils import num
-from utils.idl import SSWFunction
+
+import eis_aia_emission
 
 # Long IDL list inputs are split into into
 # smaller chunks to avoid bizarre bugs.
@@ -66,7 +69,7 @@ def prepare_data(l1_files, l0_files):
     if not l0_files:
         return
     for fp in num.chunks(l0_files, IDL_CHUNKS):
-        prep = SSWFunction('prep', arguments=[fp], instruments='eis')
+        prep = idl.SSWFunction('prep', arguments=[fp], instruments='eis')
         out, err = prep.run()
 
 def export_windata(wd_files, l1_files, aia_band):
@@ -85,12 +88,18 @@ def export_windata(wd_files, l1_files, aia_band):
     for fp in num.chunks(list(zip(wd_files, l1_files)), IDL_CHUNKS):
         wd = [f[0] for f in fp]
         l1 = [f[1] for f in fp]
-        prep = SSWFunction('export_windata',
+        prep = idl.SSWFunction('export_windata',
             arguments=[wd, l1, aia_band], instruments='eis')
         out, err = prep.run()
 
-def eis_aia_emission(aia_emission_files, wd_file):
-    pass
+def compute_eis_aia_emission(aia_emission_files, wd_files, aia_band):
+    if not aia_emission_files:
+        return
+    for aia_emission_file, wd_file in zip(aia_emission_files, wd_files):
+        windata = idl.IDLStructure(wd_file)
+        aia_emission = eis_aia_emission.compute(windata, aia_band)
+        hdulist = fits.HDUList([fits.PrimaryHDU(aia_emission)])
+        hdulist.writeto(aia_emission_file)
 
 def compute_pointing(pointing_files, aia_emission_files):
     pass
@@ -110,5 +119,6 @@ if __name__ == '__main__':
     # make targets
     make(filenames['l1'], filenames['l0'], prepare_data)
     make(filenames['windata'], filenames['l1'], export_windata, aia_band)
-    make(filenames['aia_emission'], filenames['windata'], eis_aia_emission)
+    make(filenames['aia_emission'], filenames['windata'],
+        compute_eis_aia_emission, aia_band)
     make(filenames['pointing'], filenames['aia_emission'], compute_pointing)
