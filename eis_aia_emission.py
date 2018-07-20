@@ -21,6 +21,11 @@ def compute(windata, aia_band):
     missing_places = (raster == windata.missing)
     raster[missing_places] = np.nan
     raster /= windata.exposure_time.reshape(-1, 1)
+    # select Fe XII 195.119
+    wvl_min, wvl_max = 194.961, 195.261 # FIXME
+    i_min = np.argmin(np.abs(windata.wvl - wvl_min))
+    i_max = np.argmin(np.abs(windata.wvl - wvl_max))
+    raster = raster[:, :, i_min:i_max+1]
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=RuntimeWarning)
         intensity = np.nanmean(raster, axis=-1)
