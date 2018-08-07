@@ -58,3 +58,22 @@ pointing data from EIS level 0 files.
 [`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
 [`sol`]: https://git.ias.u-psud.fr/gpelouze/sol
 [`sol.data`]: https://git.ias.u-psud.fr/gpelouze/sol/tree/master/data
+
+## TODO
+
+### Mandatory
+
+- refactor `utils.aia_raster`
+- refactor `utils.aia`
+- refactor `utils.eis`
+- refactor `utils.plots`
+- implement functions to register images in rotation and translation in
+  `coregister.rasters`, using components from [`align_images`].
+- implement functions to register slit positions separately in
+  `coregister.slits`, using components from [`align_images`].
+- refactor `__main__` of `to_integrate/coregister_eis_aia.py` into
+  `eis_pointing.compute_pointing`, using `coregister` submodules.
+
+### Optional
+
+- implement `utils.aia_raster.FileCache`
