@@ -5,7 +5,7 @@ from itertools import compress
 import numpy as np
 import sitools2.clients.sdo_client_medoc as md
 
-from utils import num
+from . import num
 
 class AIACubeCoords(object):
     ''' Represent coordinates for a cube of AIA data '''

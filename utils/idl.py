@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import scipy.io as sio
 
-from utils import num
+from . import num
 
 class IDLFunction(object):
     ''' Run an IDL function with arguments from Python, thus avoiding
