@@ -43,7 +43,7 @@ pointing data from EIS level 0 files.
 - `aia_raster.py`: defines `AIARasterGenerator` that builds synthetic rasters
   from AIA data. Also contains `SimpleCache` and `FileCache` (**TODO**).
 - `cli.py`: argument parsing and output display.
-- `eis.py`, `aia.py`: functions to handle native EIS and AIA data, filenames,
+- `eis.py` (**TODO**), `aia.py`: functions to handle native EIS and AIA data, filenames,
   and data queries. This does not take care of transformed data such as
   `AIARasterGenerator`.
   **TODO:** some functions from [`sol.data`] go here.
@@ -52,7 +52,7 @@ pointing data from EIS level 0 files.
 - `idl.py`: run IDL or SSW code from Python, load and format data returned by
   IDL. Contains `IDLFunction`, `SSWFunction` and `IDLStructure`.
 - `num.py`: tools that extend numpy or scipy.
-- `plots.py`: generate all plots from step 4.
+- `plots.py` (**TODO**): generate all plots from step 4.
 
 
 [`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
