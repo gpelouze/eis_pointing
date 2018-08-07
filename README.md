@@ -63,8 +63,8 @@ pointing data from EIS level 0 files.
 
 ### Mandatory
 
-- refactor `utils.aia_raster`
-- refactor `utils.aia`
+- ~~refactor `utils.aia_raster`~~
+- ~~refactor `utils.aia`~~
 - refactor `utils.eis`
 - refactor `utils.plots`
 - implement functions to register images in rotation and translation in
