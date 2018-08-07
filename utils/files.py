@@ -2,7 +2,8 @@
 
 import os
 import re
-from sol.data import eis
+
+from . data import eis
 
 class Files(dict):
     data_types = {

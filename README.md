@@ -53,6 +53,7 @@ pointing data from EIS level 0 files.
   IDL. Contains `IDLFunction`, `SSWFunction` and `IDLStructure`.
 - `num.py`: tools that extend numpy or scipy.
 - `plots.py` (**TODO**): generate all plots from step 4.
+- `sun.py`: generic solar computations.
 
 
 [`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
@@ -65,7 +66,7 @@ pointing data from EIS level 0 files.
 
 - ~~refactor `utils.aia_raster`~~
 - ~~refactor `utils.aia`~~
-- refactor `utils.eis`
+- ~~refactor `utils.eis`~~
 - refactor `utils.plots`
 - implement functions to register images in rotation and translation in
   `coregister.rasters`, using components from [`align_images`].
@@ -77,3 +78,5 @@ pointing data from EIS level 0 files.
 ### Optional
 
 - implement `utils.aia_raster.FileCache`
+- download EIS file from the MSSL archive if it is not found; this would
+  require using `sol.data.eis.get_fits`.
