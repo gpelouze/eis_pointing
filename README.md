@@ -34,7 +34,6 @@ pointing data from EIS level 0 files.
 
 - `rasters.py` contains functions to register images in translation and
   rotation. 
-  **TODO:** components imported from [`align_images`] should be embedded here.
 - `slits.py` functions to register slit positions (ie. vertical columns in an
   image) separately.
 
@@ -68,8 +67,8 @@ pointing data from EIS level 0 files.
 - ~~refactor `utils.aia`~~
 - ~~refactor `utils.eis`~~
 - refactor `utils.plots`
-- implement functions to register images in rotation and translation in
-  `coregister.rasters`, using components from [`align_images`].
+- ~~implement functions to register images in rotation and translation in
+  `coregister.rasters`, using components from [`align_images`].~~
 - implement functions to register slit positions separately in
   `coregister.slits`, using components from [`align_images`].
 - refactor `__main__` of `to_integrate/coregister_eis_aia.py` into

@@ -1,7 +1,70 @@
 #!/usr/bin/env python3
 
+import warnings
+
 import numpy as np
 import scipy.interpolate as si
+
+def affine_transform(x, y, transform_matrix, center=(0, 0)):
+    ''' Apply an affine transform to an array of coordinates.
+
+    Parameters
+    ==========
+    x, y : arrays with the same shape
+        x and y coordinates to be transformed
+    transform_matrix : array_like with shape (2, 3)
+        The matrix of the affine transform, [[A, B, C], [D, E, F]]. The new
+        coordinates (x', y') are computed from the input coordinates (x, y)
+        as follows:
+
+            x' = A*x + B*y + C
+            y' = D*x + E*y + F
+
+    center : 2-tulpe of floats (default: (0, 0))
+        The center of the transformation. In particular, this is useful for
+        rotating arrays around their central value and not the origin.
+
+    Returns
+    =======
+    transformed_x, transformed_y : arrays
+        Arrays with the same shape as the input x and y, and with their values
+        transformed by `transform_matrix`.
+    '''
+
+    # build array of coordinates, where the 1st axis contains (x, y, ones)
+    # values
+    ones = np.ones_like(x)
+    coordinates = np.array((x, y, ones))
+
+    # transform transform_matrix from (2, 3) to (3, 3)
+    transform_matrix = np.vstack((transform_matrix, [0, 0, 1]))
+
+    # add translation to and from the transform center to
+    # transformation_matrix
+    x_cen, y_cen = center
+    translation_to_center = np.array([
+        [1, 0, - x_cen],
+        [0, 1, - y_cen],
+        [0, 0, 1]])
+    translation_from_center = np.array([
+        [1, 0, x_cen],
+        [0, 1, y_cen],
+        [0, 0, 1]])
+    transform_matrix = np.matmul(transform_matrix, translation_to_center)
+    transform_matrix = np.matmul(translation_from_center, transform_matrix)
+
+    # apply transform
+    # start with coordinates of shape : (3, d1, ..., dn)
+    coordinates = coordinates.reshape(3, -1) # (3, N) N = product(d1, ..., dn)
+    coordinates = np.moveaxis(coordinates, 0, -1) # (N, 3)
+    coordinates = coordinates.reshape(-1, 3, 1) # (N, 3, 1)
+    new_coordinates = np.matmul(transform_matrix, coordinates) # (N, 3, 1)
+    new_coordinates = new_coordinates.reshape(-1, 3) # (N, 3)
+    new_coordinates = np.moveaxis(new_coordinates, -1, 0) # (3, N)
+    new_coordinates = new_coordinates.reshape(3, *ones.shape)
+    transformed_x, transformed_y, _ = new_coordinates
+
+    return transformed_x, transformed_y
 
 def almost_identical(arr, threshold, **kwargs):
     ''' Reduce an array of almost identical values to a single one.
@@ -100,6 +163,47 @@ def get_griddata_points(grid):
     points = np.array([grid[i].flatten()
         for i in range(grid.shape[0])])
     return points
+
+def get_max_location(arr, sub_px=True):
+    ''' Get the location of the max of an array.
+
+    Parameters
+    ==========
+    arr : ndarray
+    sub_px : bool (default: True)
+        whether to perform a parabolic interpolation about the maximum to find
+        the maximum with a sub-pixel resolution.
+
+    Returns
+    =======
+    max_loc : 1D array
+        Coordinates of the maximum of the input array.
+    '''
+    maxcc = np.nanmax(arr)
+    max_px = np.where(arr == maxcc)
+    if not np.all([len(m) == 1 for m in max_px]):
+        warnings.warn('could not find a unique maximum', RuntimeWarning)
+    max_px = np.array([m[0] for m in max_px])
+    max_loc = max_px.copy()
+
+    if sub_px:
+        max_loc = max_loc.astype(float)
+        for dim in range(arr.ndim):
+            arr_slice = list(max_px)
+            dim_max = max_px[dim]
+            if dim_max == 0 or dim_max == arr.shape[dim] - 1:
+                m = 'maximum is on the edge of axis {}'.format(dim)
+                warnings.warn(m, RuntimeWarning)
+                max_loc[dim] = dim_max
+            else:
+                arr_slice[dim] = [dim_max-1, dim_max, (dim_max+1)]
+                interp_points = arr[arr_slice]
+                a, b, c = interp_points**2
+                d = a - 2*b + c
+                if d != 0 and not np.isnan(d):
+                    max_loc[dim] = dim_max - (c-b)/d + 0.5
+
+    return max_loc
 
 def recarray_to_dict(recarray, lower=False):
     ''' Transform a recarray containing a single row to a dictionnary.
