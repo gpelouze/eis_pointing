@@ -66,11 +66,11 @@ pointing data from EIS level 0 files.
 - ~~refactor `utils.aia_raster`~~
 - ~~refactor `utils.aia`~~
 - ~~refactor `utils.eis`~~
-- refactor `utils.plots`
 - ~~implement functions to register images in rotation and translation in
   `coregister.rasters`, using components from [`align_images`].~~
-- implement functions to register slit positions separately in
-  `coregister.slits`, using components from [`align_images`].
+- ~~implement functions to register slit positions separately in
+  `coregister.slits`, using components from [`align_images`].~~
+- refactor `utils.plots`
 - refactor `__main__` of `to_integrate/coregister_eis_aia.py` into
   `eis_pointing.compute_pointing`, using `coregister` submodules.
 
