@@ -11,7 +11,7 @@ from ..utils import misc
 
 from . import tools
 
-def cc_synthetic_raster_step(raster, x, y, t, ref_raster_builder, align_mode,
+def cc_step(raster, x, y, t, ref_raster_builder, align_mode,
     x_shift, y_shift, ang_shift, norm=None):
 
     align_transform, align_center = align_mode
@@ -44,7 +44,7 @@ def cc_synthetic_raster_step(raster, x, y, t, ref_raster_builder, align_mode,
 
     return np.sum(raster * im) / norm
 
-def cc_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
+def compute_cc(raster, x, y, t, ref_raster_builder, align_mode,
         x_set=None, y_set=None, a_set=None,
         cores=None):
 
@@ -54,7 +54,7 @@ def cc_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
     n_iter = nx * na * na
 
     cc_worker = functools.partial(
-        cc_synthetic_raster_step,
+        cc_step,
         raster, x, y, t, ref_raster_builder, align_mode)
     cc_iter = itertools.product(x_set.world, y_set.world, a_set.world)
     if cores is None:
@@ -80,7 +80,7 @@ def cc_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
 
     return cc
 
-def track_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
+def track(raster, x, y, t, ref_raster_builder, align_mode,
         x_set=None, y_set=None, a_set=None,
         return_full_cc=False, sub_px=True,
         **kwargs):
@@ -95,7 +95,7 @@ def track_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
     return_full_cc : bool (default: False)
         If True, return the full cross-correlation array.
         If False, only return the maximum cross-correlation.
-    **kwargs : passed to cc_synthetic_raster.
+    **kwargs : passed to compute_cc.
 
     Returns
     =======
@@ -108,7 +108,7 @@ def track_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
         array.
     '''
 
-    cc = cc_synthetic_raster(
+    cc = compute_cc(
         raster, x, y, t, ref_raster_builder, align_mode,
         x_set=x_set, y_set=y_set, a_set=a_set,
         **kwargs)
@@ -123,7 +123,7 @@ def track_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
     else:
         return offset, np.nanmax(cc)
 
-def align_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
+def align(raster, x, y, t, ref_raster_builder, align_mode,
         x_set=None, y_set=None, a_set=None,
         cores=1, save_to='io/rot_raster/cc',
         return_offset=False):
@@ -131,7 +131,7 @@ def align_synthetic_raster(raster, x, y, t, ref_raster_builder, align_mode,
 
     # explore raster with rotation
     raster = np.ma.array(raster, mask=np.isnan(raster))
-    offset, cc = track_synthetic_raster(
+    offset, cc = track(
         raster, x, y, t, ref_raster_builder, align_mode,
         x_set=x_set, y_set=y_set, a_set=a_set,
         return_full_cc=True, cores=cores)
