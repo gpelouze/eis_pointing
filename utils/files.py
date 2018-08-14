@@ -8,7 +8,7 @@ from . data import eis
 class Files(dict):
     data_types = {
         'windata': ('io/windata', '.sav'),
-        'aia_emission': ('io/aia_emission', '.fits'),
+        'eis_aia_emission': ('io/eis_aia_emission', '.fits'),
         'pointing': ('io/pointing', '.fits'),
         }
 

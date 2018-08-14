@@ -21,7 +21,7 @@ pointing data from EIS level 0 files.
    generate an intensity map that can be compared to AIA images. Currently, the
    approach is to only sum the FE XII 195.119 Å. In the future, this step
    should use the AIA effective area to more accurately match the AIA emission.
-   Data are saved to `io/aia_emission/eis_aia_emission_<date>.fits`.
+   Data are saved to `io/eis_aia_emission/eis_aia_emission_<date>.fits`.
 
 4. `eis_aia_registration.py` uses the AIA emission map generated at step 3, as
    well as AIA data retrieved from Medoc, to find the shift between EIS and
