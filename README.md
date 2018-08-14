@@ -23,7 +23,7 @@ pointing data from EIS level 0 files.
    should use the AIA effective area to more accurately match the AIA emission.
    Data are saved to `io/aia_emission/eis_aia_emission_<date>.fits`.
 
-4. `coregister_eis_aia.py` uses the AIA emission map generated at step 3, as
+4. `eis_aia_registration.py` uses the AIA emission map generated at step 3, as
    well as AIA data retrieved from Medoc, to find the shift between EIS and
    AIA. Results from the alignment (ie. new EIS coordinates, and correlation
    cubes), are saved to `io/pointing/eis_pointing_<date>.fits`. At this step,
