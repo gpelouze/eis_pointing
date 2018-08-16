@@ -3,7 +3,7 @@
 import os
 import re
 
-from . data import eis
+from . import eis
 
 class Files(dict):
     data_types = {
