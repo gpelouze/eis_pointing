@@ -44,8 +44,16 @@ class EISPointing(object):
         self.t_ref = t_ref
         self.wvl = wvl
 
-    def from_windata(windata):
-        ''' Initialize from an IDLStructure windata object.  '''
+    def from_windata(windata, use_wvl=True):
+        ''' Initialize from a windata object.
+
+        Parameters
+        ==========
+        windata : idl.IDLStructure
+            The windata object containing the pointing.
+        use_wvl : bool (default: True)
+            Wheter to represent the wvl dimension.
+        '''
 
         # find missing slit times to interpolate their coordinates
         bad_times = (windata.exposure_time == 0)
@@ -57,19 +65,29 @@ class EISPointing(object):
         y = windata.solar_y
         t = num.replace_missing_values(windata.time, bad_times)
 
-        wave_corr = windata.wave_corr
-        wave_corr = wave_corr.reshape(*wave_corr.shape, 1)
-        wvl = windata.wvl.reshape(1, 1, -1) - wave_corr
+        if use_wvl:
+            wave_corr = windata.wave_corr
+            wave_corr = wave_corr.reshape(*wave_corr.shape, 1)
+            wvl = windata.wvl.reshape(1, 1, -1) - wave_corr
 
-        # repeat arrays to form grids
-        ny, nx, nw = wvl.shape
-        t = np.repeat(t, ny*nw).reshape(nx, ny, nw)
-        x = np.repeat(x, ny*nw).reshape(nx, ny, nw)
-        y = np.repeat(y, nx*nw).reshape(ny, nx, nw)
-        t = np.swapaxes(t, 0, 1)
-        x = np.swapaxes(x, 0, 1)
+            # repeat arrays to form grids
+            ny, nx, nw = wvl.shape
+            t = np.repeat(t, ny*nw).reshape(nx, ny, nw)
+            x = np.repeat(x, ny*nw).reshape(nx, ny, nw)
+            y = np.repeat(y, nx*nw).reshape(ny, nx, nw)
+            t = np.swapaxes(t, 0, 1)
+            x = np.swapaxes(x, 0, 1)
 
-        return EISPointing(x, y, t, t_ref, wvl)
+        else:
+            wvl = None
+            ny, nx = windata.solar_y.size, windata.solar_x.size
+            t = np.repeat(t, ny).reshape(nx, ny)
+            x = np.repeat(x, ny).reshape(nx, ny)
+            y = np.repeat(y, nx).reshape(ny, nx)
+            t = np.swapaxes(t, 0, 1)
+            x = np.swapaxes(x, 0, 1)
+
+        return EISPointing(x, y, t, t_ref, wvl=wvl)
 
     def to_bintable(self):
         ''' Create a FITS BinTableHDU containing all the pointing data. '''
