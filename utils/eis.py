@@ -129,6 +129,12 @@ class EISPointing(object):
 
         return EISPointing(x, y, t, t_ref, wvl=wvl)
 
+    def to_hdulist(self):
+        return fits.HDUList([fits.PrimaryHDU(), self.to_bintable()])
+
+    def from_hdulist(hdulist):
+        return EISPointing.from_bintable(hdulist[1])
+
 
 class EISData(object):
     def __init__(self, data, pointing):
