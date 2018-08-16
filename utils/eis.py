@@ -1,9 +1,115 @@
 #!/usr/bin/env python3
 
+from functools import reduce
+import datetime
+import dateutil.parser
+import operator
 import os
 import re
+import warnings
 
+from astropy.io import fits
 import numpy as np
+
+from utils import num
+
+class EISPointing(object):
+    def __init__(self, x, y, t, t_ref, wvl=None):
+        ''' Coordinates for an EIS raster or map
+
+        Parameters
+        ==========
+        x, y, t : ndarrays
+            arrays with 2 or 3 dimensions, depending on wheter these are
+            coordinates for a map or a raster. All arrays have the same shape.
+            - x and y contain absolute coordinates
+            - t contains coordinates relative to `t_ref`
+        t_ref : datetime.datetime
+        wvl : 3D ndarray or None (default: None)
+            If an array, it has the same shape as x, y, and t.
+        '''
+        # verify that all arrays have the same shape
+        ref_shape = x.shape
+        for shape in (x.shape, y.shape, t.shape):
+            if shape != ref_shape:
+                raise ValueError('inconsistent shapes')
+        if (wvl is not None) and (wvl.shape != ref_shape):
+            raise ValueError('inconsistent shapes')
+        if (wvl is None) and (len(ref_shape) == 3):
+            raise ValueError('received 3D coordinates, but wvl is None')
+        self.shape = ref_shape
+        self.x = x
+        self.y = y
+        self.t = t
+        self.t_ref = t_ref
+        self.wvl = wvl
+
+    def from_windata(windata):
+        ''' Initialize from an IDLStructure windata object.  '''
+
+        # find missing slit times to interpolate their coordinates
+        bad_times = (windata.exposure_time == 0)
+        msg = 'Interpolated {} missing slit times.'.format(bad_times.sum())
+        warnings.warn(msg)
+
+        t_ref = dateutil.parser.parse(windata.hdr['date_obs'][0])
+        x = num.replace_missing_values(windata.solar_x, bad_times)
+        y = windata.solar_y
+        t = num.replace_missing_values(windata.time, bad_times)
+
+        wave_corr = windata.wave_corr
+        wave_corr = wave_corr.reshape(*wave_corr.shape, 1)
+        wvl = windata.wvl.reshape(1, 1, -1) - wave_corr
+
+        # repeat arrays to form grids
+        ny, nx, nw = wvl.shape
+        t = np.repeat(t, ny*nw).reshape(nx, ny, nw)
+        x = np.repeat(x, ny*nw).reshape(nx, ny, nw)
+        y = np.repeat(y, nx*nw).reshape(ny, nx, nw)
+        t = np.swapaxes(t, 0, 1)
+        x = np.swapaxes(x, 0, 1)
+
+        return EISPointing(x, y, t, t_ref, wvl)
+
+    def to_bintable(self):
+        ''' Create a FITS BinTableHDU containing all the pointing data. '''
+
+        arrays = {
+            'x': self.x,
+            'y': self.y,
+            't': self.t,
+            'wvl': self.wvl,
+            }
+        columns = []
+        for title, array in arrays.items():
+            column_shape = array.shape[1:][::-1]
+            column = fits.Column(
+                name=title,
+                array=array,
+                format='{:d}D'.format(reduce(operator.mul, column_shape)),
+                dim=str(column_shape),
+                )
+            columns.append(column)
+        tbhdu = fits.BinTableHDU.from_columns(columns)
+
+        tbhdu.header.append(('t_ref', str(self.t_ref)))
+
+        return tbhdu
+
+
+class EISData(object):
+    def __init__(self, data, pointing):
+        if data.shape != pointing.shape:
+            raise ValueError('inconsistent shapes')
+        self.data = data
+        self.pointing = pointing
+
+    def to_hdulist(self):
+        data_hdu = fits.PrimaryHDU(self.data)
+        pointing_bintable = self.pointing.to_bintable()
+        hdulist = fits.HDUList([data_hdu, pointing_bintable])
+        return hdulist
+
 
 class ReFiles():
     ''' Regex patterns to be combined and compiled at instanciation '''

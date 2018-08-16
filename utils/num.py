@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import datetime
+import dateutil.parser
 import warnings
 
 import numpy as np
@@ -164,6 +166,45 @@ def get_griddata_points(grid):
         for i in range(grid.shape[0])])
     return points
 
+def replace_missing_values(arr, missing, inplace=False, deg=1):
+    ''' Interpolate missing elements in a 1D array using a polynomial
+    interpolation from the non-missing values.
+
+    Parameters
+    ==========
+    arr : np.ndarray
+        The 1D array in which to replace the element.
+    missing : np.ndarray
+        A boolean array where the missing elements are marked as True.
+    inplace : bool (default: False)
+        If True, perform operations in place. If False, copy the array before
+        replacing the element.
+    deg : int (default: 1)
+        The degree of the polynome used for the interpolation.
+
+    Returns
+    =======
+    arr : np.ndarray
+        Updated array.
+    '''
+
+    assert arr.ndim == 1, 'arr must be 1D'
+    assert arr.shape == missing.shape, \
+        'arr and missing must have the same shape'
+    assert not np.all(missing), \
+        'at least one element must not be missing'
+    npx = len(arr)
+
+    if not inplace:
+        arr = arr.copy()
+
+    x = np.arange(len(arr))
+    c = np.polyfit(x[~missing], arr[~missing], deg)
+    p = np.poly1d(c)
+    arr[missing] = p(x[missing])
+
+    return arr
+
 def get_max_location(arr, sub_px=True):
     ''' Get the location of the max of an array.
 
@@ -221,3 +262,16 @@ def recarray_to_dict(recarray, lower=False):
 @np.vectorize
 def total_seconds(timedelta):
     return timedelta.total_seconds()
+
+@np.vectorize
+def parse_date(date):
+    return dateutil.parser.parse(date)
+
+def seconds_to_timedelta(arr):
+    ''' Parse an array of seconds and convert it to timedelta.
+    '''
+    to_timedelta = np.vectorize(lambda s: datetime.timedelta(seconds=s))
+    mask = ~np.isnan(arr)
+    td = arr.astype(object)
+    td[mask] = to_timedelta(td[mask])
+    return td
