@@ -7,9 +7,11 @@ from . import eis
 
 class Files(dict):
     data_types = {
-        'windata': ('io/windata', '.sav'),
-        'eis_aia_emission': ('io/eis_aia_emission', '.fits'),
-        'pointing': ('io/pointing', '.fits'),
+        # key: path (directory only), prefix, extension
+        'windata': ('io/windata', 'windata', '.sav'),
+        'eis_aia_emission': ('io/eis_aia_emission', 'eis_aia_emission', '.fits'),
+        'pointing': ('io/pointing', 'pointing', '.fits'),
+        'pointing_verification': ('io/pointing_verification', '', '/'),
         }
 
     def __init__(self, eis_l0_filename, aia_band):
@@ -22,22 +24,22 @@ class Files(dict):
         for levelname in ('l0', 'l1'):
             fname = self._transform_filenames(
                 eis_l0_filename,
-                levelname,
+                'eis_' + levelname,
                 suffix='.fits',
                 )
             filenames[levelname] = eis.fits_path(fname, absolute=True)
 
         # local files
-        for name, (path, extension) in Files.data_types.items():
+        for key, (path, name, extension) in Files.data_types.items():
             path = os.path.join(path, '')
-            filenames[name] = self._transform_filenames(
+            filenames[key] = self._transform_filenames(
                 eis_l0_filename, name,
                 prefix=path, suffix=extension)
 
         super().__init__(filenames)
 
     def mk_output_dirs(self):
-        for (d, _) in Files.data_types.values():
+        for (d, _, _) in Files.data_types.values():
             if not os.path.exists(d):
                 os.makedirs(d)
 
@@ -51,6 +53,8 @@ class Files(dict):
         Unexpected behavior will occur when input file names are not formatted
         like 'eis_l0_yyyymmdd_hhmmss'.
         '''
-        fname = re.sub('eis_l0_', 'eis_{}_', fname_l0)
+        if datatype:
+            datatype += '_'
+        fname = re.sub('eis_l0_', '{}', fname_l0)
         fname = prefix + fname.format(datatype) + suffix
         return fname
