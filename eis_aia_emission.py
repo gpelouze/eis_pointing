@@ -4,6 +4,8 @@ import warnings
 
 import numpy as np
 
+from utils import eis
+
 def compute(windata, aia_band):
     ''' Compute synthetic emission for a given AIA band using EIS data.
 
@@ -29,4 +31,6 @@ def compute(windata, aia_band):
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', category=RuntimeWarning)
         intensity = np.nanmean(raster, axis=-1)
-    return intensity
+    pointing = eis.EISPointing.from_windata(windata, use_wvl=False)
+    data = eis.EISData(intensity, pointing)
+    return data

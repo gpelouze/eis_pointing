@@ -11,6 +11,7 @@ from utils import idl
 from utils import num
 
 import eis_aia_emission
+import eis_aia_registration
 
 # Long IDL list inputs are split into into
 # smaller chunks to avoid bizarre bugs.
@@ -98,7 +99,7 @@ def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
     for eis_aia_emission_file, wd_file in zip(eis_aia_emission_files, wd_files):
         windata = idl.IDLStructure(wd_file)
         emission = eis_aia_emission.compute(windata, aia_band)
-        hdulist = fits.HDUList([fits.PrimaryHDU(emission)])
+        hdulist = emission.to_hdulist()
         hdulist.writeto(eis_aia_emission_file)
 
 def compute_pointing(pointing_files, eis_aia_emission_files):
