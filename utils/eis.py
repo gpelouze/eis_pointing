@@ -78,8 +78,9 @@ class EISPointing(object):
             'x': self.x,
             'y': self.y,
             't': self.t,
-            'wvl': self.wvl,
             }
+        if self.wvl is not None:
+            arrays['wvl'] = self.wvl
         columns = []
         for title, array in arrays.items():
             column_shape = array.shape[1:][::-1]
