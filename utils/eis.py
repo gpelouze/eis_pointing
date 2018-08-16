@@ -115,6 +115,20 @@ class EISPointing(object):
 
         return tbhdu
 
+    def from_bintable(hdu):
+        ''' Restore from a FITS BinTableHDU. '''
+
+        x = hdu.data.x
+        y = hdu.data.y
+        t = hdu.data.t
+        t_ref = dateutil.parser.parse(hdu.header['t_ref'])
+        try:
+            wvl = hdu.data.wvl
+        except AttributeError:
+            wvl = None
+
+        return EISPointing(x, y, t, t_ref, wvl=wvl)
+
 
 class EISData(object):
     def __init__(self, data, pointing):
@@ -128,6 +142,12 @@ class EISData(object):
         pointing_bintable = self.pointing.to_bintable()
         hdulist = fits.HDUList([data_hdu, pointing_bintable])
         return hdulist
+
+    def from_hdulist(hdulist):
+        data_hdu, pointing_bintable = hdulist
+        data = data_hdu.data
+        pointing = EISPointing.from_bintable(pointing_bintable)
+        return EISData(data, pointing)
 
 
 class ReFiles():
