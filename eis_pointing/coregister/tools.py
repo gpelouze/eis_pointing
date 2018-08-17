@@ -68,7 +68,7 @@ def convert_offsets(offsets, offset_sets):
         world_offsets.append(offset_set.index_to_world(offset))
     return world_offsets
 
-def transform_matrix(offset, mode):
+def transform_matrix(offset, mode='rotation'):
     y_shift, x_shift, ang_shift = offset
     ca = np.cos(np.deg2rad(ang_shift))
     sa = np.sin(np.deg2rad(ang_shift))
@@ -81,7 +81,7 @@ def transform_matrix(offset, mode):
     else:
         raise ValueError('invalide mode:', mode)
 
-def transform_center(x, y, mode):
+def transform_center(x, y, mode='raster'):
     if mode == 'sun':
         return (0, 0)
     elif mode == 'raster':

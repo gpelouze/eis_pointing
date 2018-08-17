@@ -11,16 +11,14 @@ from ..utils import misc
 
 from . import tools
 
-def cc_step(raster, x, y, t, ref_raster_builder, align_mode,
+def cc_step(raster, x, y, t, ref_raster_builder,
     x_shift, y_shift, ang_shift, norm=None):
-
-    align_transform, align_center = align_mode
 
     # get shifted and rotated coordinates
     rast_x, rast_y = num.affine_transform(
         x, y,
-        tools.transform_matrix([y_shift, x_shift, ang_shift], align_transform),
-        center=tools.transform_center(x, y, align_center),
+        tools.transform_matrix([y_shift, x_shift, ang_shift]),
+        center=tools.transform_center(x, y),
         )
 
     # get values of im at the locations of the shifted and rotated coordinates
@@ -44,7 +42,7 @@ def cc_step(raster, x, y, t, ref_raster_builder, align_mode,
 
     return np.sum(raster * im) / norm
 
-def compute_cc(raster, x, y, t, ref_raster_builder, align_mode,
+def compute_cc(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
         cores=None):
 
@@ -55,7 +53,7 @@ def compute_cc(raster, x, y, t, ref_raster_builder, align_mode,
 
     cc_worker = functools.partial(
         cc_step,
-        raster, x, y, t, ref_raster_builder, align_mode)
+        raster, x, y, t, ref_raster_builder)
     cc_iter = itertools.product(x_set.world, y_set.world, a_set.world)
     if cores is None:
         cc_iter = misc.eta_iterator(
@@ -80,7 +78,7 @@ def compute_cc(raster, x, y, t, ref_raster_builder, align_mode,
 
     return cc
 
-def track(raster, x, y, t, ref_raster_builder, align_mode,
+def track(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
         return_full_cc=False, sub_px=True,
         **kwargs):
@@ -109,7 +107,7 @@ def track(raster, x, y, t, ref_raster_builder, align_mode,
     '''
 
     cc = compute_cc(
-        raster, x, y, t, ref_raster_builder, align_mode,
+        raster, x, y, t, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set,
         **kwargs)
 
@@ -123,7 +121,7 @@ def track(raster, x, y, t, ref_raster_builder, align_mode,
     else:
         return offset, np.nanmax(cc)
 
-def align(raster, x, y, t, ref_raster_builder, align_mode,
+def align(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
         cores=1,
         return_offset=False):
@@ -132,7 +130,7 @@ def align(raster, x, y, t, ref_raster_builder, align_mode,
     # explore raster with rotation
     raster = np.ma.array(raster, mask=np.isnan(raster))
     offset, cc = track(
-        raster, x, y, t, ref_raster_builder, align_mode,
+        raster, x, y, t, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set,
         return_full_cc=True, cores=cores)
     cc = np.array(cc)
@@ -140,11 +138,10 @@ def align(raster, x, y, t, ref_raster_builder, align_mode,
 
     # get the corrected coordinates
     offset = np.array(offset)
-    align_transform, align_center = align_mode
     new_x, new_y = num.affine_transform(
         x, y,
-        tools.transform_matrix(offset, align_transform),
-        center=tools.transform_center(x, y, align_center),
+        tools.transform_matrix(offset),
+        center=tools.transform_center(x, y),
         )
 
     if return_offset:
