@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 
 from itertools import compress
+import os
 
+from astropy import time
 import numpy as np
-import sitools2.clients.sdo_client_medoc as md
+try:
+    import sitools2.clients.sdo_client_medoc as md
+except:
+    print('Cannot import sitools2.')
 
 from . import num
+
+verb = False
 
 class AIACubeCoords(object):
     ''' Represent coordinates for a cube of AIA data '''
@@ -71,6 +78,7 @@ def sdotime_to_utc(sdo_time):
     t_ref = time.Time('1977-01-01T00:00:00', scale='tai')
     t_tai = t_ref + time.TimeDelta(sdo_time, format='sec', scale='tai')
     return t_tai.utc.datetime
+
 
 def query_aia_data(dates, wl0, nb_res_max=-1, keywords='default'):
     ''' Get a list of AIA data within given time limits.
@@ -158,3 +166,87 @@ def query_aia_data(dates, wl0, nb_res_max=-1, keywords='default'):
         metadata = {k: np.array(v) for k, v in metadata.items()}
 
     return aia_frames, metadata
+
+def filename_from_medoc_result(res, path_prefix=''):
+    ''' Determine the path an name of an AIA fits from the object returned by
+    the sitools2 medoc client.
+    '''
+
+    # Extract metadata and store them to a dict
+    metadata = {}
+    # date:
+    date = ('year', 'month', 'day', 'hour', 'minute', 'second', 'microsecond')
+    metadata.update({
+            k: res.date_obs.__getattribute__(k) for k in date
+            })
+    # data_level
+    try:
+        metadata['level'] = res.series_name.strip('aia.lev')
+    except AttributeError:
+        # pySitools 1.0.1 doesn't provide res.series_name. Default to 1
+        metadata['level'] = '1'
+    # wavelength
+    metadata['wave'] = res.wave
+    metadata['isodate'] = res.date_obs.strftime('%Y-%m-%dT%H-%M-%S')
+
+    # define file path and name templates
+    # eg path: "sdo/aia/level1/2012/06/05/"
+    path = os.path.join(
+        path_prefix, 'sdo', 'aia', 'level{level}',
+        '{year:04d}', '{month:02d}', '{day:02d}')
+    # eg format: "aia.lev1.171A_2012-06-05T11-15-36.image_lev1.fits"
+    filename = 'aia.lev{level}.{wave}A_{isodate}.image_lev{level}.fits'
+
+    path = path.format(**metadata)
+    filename = filename.format(**metadata)
+
+    return path, filename
+
+def download_fits(medoc_result, dirname, filename):
+    ''' Download the FITS for a given medoc request result, and store it to
+    dirname/filename.
+    '''
+    if verb:
+        print('AIA: downloading to {}'.format(os.path.join(dirname, filename)))
+    medoc_result.get_file(target_dir=dirname, filename=filename)
+
+def get_fits(aia_res, ias_location_prefix='/'):
+    ''' Get the path to the fits file for a md.Sdo_data object object.
+
+    If the file exists in ias_location_prefix, return the path to this file.
+    Else, download it and return the path to the downloaded file.
+
+    The files are downloaded under the path specified in environment variable
+    $SOLARDATA if is set, and in the current directory if not.
+    '''
+
+    # build aia path
+    path_prefix = os.environ.get('SOLARDATA', None)
+    aia_dir, aia_file = filename_from_medoc_result(
+        aia_res, path_prefix=path_prefix)
+    if path_prefix is None:
+        aia_dir = '.'
+
+    # build path to fits in ias_location
+    ias_location = aia_res.ias_location.strip('/')
+    ias_location_fits = os.path.join(
+        ias_location_prefix, ias_location, 'S00000', 'image_lev1.fits')
+    ias_location_fits = os.path.expanduser(ias_location_fits)
+
+    # check for fits in ias_location
+    if os.path.exists(ias_location_fits):
+        if verb:
+            print('AIA: using {}'.format(ias_location_fits))
+        fits_path = ias_location_fits
+
+    # if no fits in ias_location, get it over HTTP
+    else:
+        if not os.path.exists(aia_dir):
+            os.makedirs(aia_dir)
+        if not os.path.exists(os.path.join(aia_dir, aia_file)):
+            download_fits(aia_res, aia_dir, aia_file)
+        if verb:
+            print('AIA: using {}'.format(os.path.join(aia_dir, aia_file)))
+        fits_path = os.path.join(aia_dir, aia_file)
+
+    return fits_path
