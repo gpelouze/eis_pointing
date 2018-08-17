@@ -5,14 +5,14 @@ import os
 from astropy.io import fits
 import numpy as np
 
-from utils import cli
-from utils import eis
-from utils import files
-from utils import idl
-from utils import num
+from eis_pointing.utils import cli
+from eis_pointing.utils import eis
+from eis_pointing.utils import files
+from eis_pointing.utils import idl
+from eis_pointing.utils import num
 
-import eis_aia_emission
-import eis_aia_registration
+from eis_pointing import eis_aia_emission
+from eis_pointing import eis_aia_registration
 
 # Long IDL list inputs are split into into
 # smaller chunks to avoid bizarre bugs.

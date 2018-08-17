@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 
-from utils import eis
+from .utils import eis
 
 def compute(windata, aia_band):
     ''' Compute synthetic emission for a given AIA band using EIS data.

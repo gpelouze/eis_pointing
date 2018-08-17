@@ -11,7 +11,7 @@ import warnings
 from astropy.io import fits
 import numpy as np
 
-from utils import num
+from . import num
 
 class EISPointing(object):
     def __init__(self, x, y, t, t_ref, wvl=None):
