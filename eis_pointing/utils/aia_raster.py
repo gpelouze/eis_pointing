@@ -336,7 +336,7 @@ class SyntheticRasterBuilder(object):
             rasters.append(self.get_raster(x, y, t, **kwargs))
         return np.array(rasters)
 
-    def get_frame(self, t, x=None, y=None, **kwargs):
+    def get_frame(self, t, x=None, y=None):
         ''' Get the closest frame found for a given time.
 
         Parameters
@@ -349,15 +349,6 @@ class SyntheticRasterBuilder(object):
             dimensions. If they have 1 dimensions, use them as the x and y
             coordinates of a 2D grid. If they have 2 dimensions, interpolate
             the frame at all `(x[i, j], y[i, j])` positions.
-        use_cache : bool (default: True)
-            - If True, use data cached in `self.cache`. If it is empty,
-              data are downloaded using `get_data()`.
-            - If False, data are downloaded regardless of what's
-              in the cache.
-            Note: by default, downloaded data are cached (ie. saved to
-            `self.cache`) if `use_cache` is True. If `use_cache` is
-            False, the cache is not modified. This behaviour can be overridden
-            by using `update_cache`, which is passed to `get_data()`.
 
         This function bypasses any cache.
         '''
