@@ -76,6 +76,6 @@ pointing data from EIS level 0 files.
 
 ### Optional
 
-- implement `utils.aia_raster.FileCache`
+- ~~implement `utils.aia_raster.FileCache`~~
 - download EIS file from the MSSL archive if it is not found; this would
   require using `sol.data.eis.get_fits`.

@@ -2,6 +2,7 @@
 
 import itertools
 import multiprocessing as mp
+import os
 import warnings
 
 from astropy.io import fits
@@ -12,26 +13,56 @@ import scipy.ndimage as ndimage
 from . import aia
 from . import num
 
-class SimpleCache(object):
+class GenericCache(object):
     def __init__(self):
         self.clear()
 
     def clear(self):
-        self.data = None
         self.is_empty = True
+
+    def update(self):
+        self.is_empty = False
+
+class SimpleCache(GenericCache):
+    def clear(self):
+        self.data = None
+        super().clear()
 
     def update(self, data):
         self.data = data
-        self.is_empty = False
+        super().update()
 
     def get(self):
         return self.data
+
+class FileCache(GenericCache):
+    def __init__(self, path):
+        self.path = path
+        if self.path and os.path.exists(self.path):
+            self.is_empty = False
+        else:
+            self.is_empty = True
+
+    def clear(self):
+        if self.path and os.path.exists(self.path):
+            os.remove(self.path)
+        super().clear()
+
+    def update(self, data):
+        np.save(self.path, data)
+        super().update()
+
+    def get(self):
+        return np.load(self.path)
+
+    def __bool__(self):
+        return not (self.path is None)
 
 class SyntheticRasterBuilder(object):
     ''' Class to build synthetic AIA rasters. Data are retrieved from Medoc
     using SITools, and cached when necessary. '''
 
-    def __init__(self, **kwargs):
+    def __init__(self, file_cache=None, **kwargs):
         ''' Create a new synthetic raster builder.
 
         **kwargs can contain different sets of parameters, which trigger the
@@ -42,6 +73,7 @@ class SyntheticRasterBuilder(object):
         See the docscrings of these functions for details on the parameters.
         '''
         self.cache = SimpleCache()
+        self.file_cache = FileCache(file_cache)
         if {'dates', 'date_ref', 'channel'} == kwargs.keys():
             self._init_from_dates(
                 kwargs['dates'], kwargs['date_ref'], kwargs['channel'])
@@ -141,6 +173,8 @@ class SyntheticRasterBuilder(object):
         data = np.array(data)
         if update_cache:
             self.cache.update(data)
+            if self.file_cache:
+                self.file_cache.update(data)
         return data
 
     def degrade_resolution(self, fwhm, cores=None):
@@ -223,24 +257,32 @@ class SyntheticRasterBuilder(object):
               headers. This is useful when updated values are stored separately
               from the FITS files, as it is the case in Medoc.
         use_cache : bool (default: True)
-            - If True, use data cached in `self.cache`. If it is empty,
-              data are downloaded using `get_data()`.
+            - If True, use data cached in `self.cache`. If it is empty, data
+              are loaded from `self.file_cache`, or downloaded using
+              `get_data()` if the file cache is empty..
             - If False, data are downloaded regardless of what's
-              in the cache.
+              in the cache and the file cache.
             Note: by default, downloaded data are cached (ie. saved to
-            `self.cache`) if `use_cache` is True. If `use_cache` is
-            False, the cache is not modified. This behaviour can be overridden
-            by using `update_cache`, which is passed to `get_data()`.
+            `self.cache` and `self.file_cache`) if `use_cache` is True. If
+            `use_cache` is False, the cache is not modified. This behaviour can
+            be overridden by using `update_cache`, which is passed to
+            `get_data()`.
         update_cache : bool or None (default: None)
-            If True, update the cache when downloading data.
-            If False, don't update the cache.
+            If True, update the cache and the file cache when downloading data.
+            If False, don't update the caches.
             If None, use the same value as use_cache.
         '''
         if update_cache is None:
             update_cache = use_cache
         if use_cache:
             if self.cache.is_empty:
-                return self._download_data(rotate, update_cache)
+                if not self.file_cache.is_empty:
+                    data = self.file_cache.get()
+                    if update_cache:
+                        self.cache.update(data)
+                    return data
+                else:
+                    return self._download_data(rotate, update_cache)
             else:
                 return self.cache.get()
         else:

@@ -12,6 +12,7 @@ class Files(dict):
         'eis_aia_emission': ('io/eis_aia_emission', 'eis_aia_emission', '.fits'),
         'pointing': ('io/pointing', 'pointing', '.fits'),
         'pointing_verification': ('io/pointing_verification', '', '/'),
+        'synthetic_raster_cache': ('io/cache', 'synthetic_raster', '.npy'),
         }
 
     def __init__(self, eis_l0_filename, aia_band):

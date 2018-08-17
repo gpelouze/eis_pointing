@@ -12,7 +12,7 @@ from .utils import num
 
 from . import coregister as cr
 
-def optimal_pointing(eis_data, verif_dir, cores=None):
+def optimal_pointing(eis_data, verif_dir, aia_cache=None, cores=None):
     ''' Determine the EIS pointing using AIA data as a reference.
 
     Parameters
@@ -58,12 +58,11 @@ def optimal_pointing(eis_data, verif_dir, cores=None):
         dates=[np.min(dates_abs), np.max(dates_abs)],
         date_ref=date_ref,
         channel=eis.get_aia_channel(wl0),
+        file_cache=aia_cache,
         )
-    raster_builder.cache.update(np.load('io/aia_raster.npy')) # FIXME
     aia_int = raster_builder.get_raster(
         x, y, dates_rel_hours,
         extrapolate_t=True)
-    # np.save('io/aia_raster.npy', raster_builder.cache.get()) # FIXME
 
     # degrade raster_builder resolution to 3 arcsec (see DelZanna+2011)
     raster_builder.degrade_resolution(3, cores=cores)
