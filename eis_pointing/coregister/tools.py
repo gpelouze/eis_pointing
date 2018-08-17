@@ -68,6 +68,52 @@ def convert_offsets(offsets, offset_sets):
         world_offsets.append(offset_set.index_to_world(offset))
     return world_offsets
 
+def create_margin(arr, margin, axis):
+    ''' Create a spatial margins around a cube of coordinates.
+
+    Parameters
+    ==========
+    arr : np.ndarray
+        3D array containing coordinate values to which the margin must be
+        added. Values are assumed to be homogenely spaced.
+    margin : float
+        The space add keep on both sides of arr. This is in units of arr, (eg.
+        arcseconds for spatial coordinates).
+    axis : int
+        The axis along which to add the margin.
+
+    Returns
+    =======
+    new_shape : int
+        shape of a dimension of that can store the input coordinates, with
+        space added for the margins.
+    new_slice : slice
+        slice along the input axis, describing the position of the input arr in
+        the new array.
+    '''
+
+    # determine the step
+    s_inf = slice(None, -1)
+    s_sup = slice(1, None)
+    s_all = slice(None)
+    cut_inf = [s_all] * arr.ndim
+    cut_sup = [s_all] * arr.ndim
+    cut_inf[axis] = s_inf
+    cut_sup[axis] = s_sup
+    d = arr[cut_sup] - arr[cut_inf]
+    try:
+        d = num.almost_identical(d, 0.05)
+    except ValueError:
+        warnings.warn('Rasters appear to have inconsistent steps. '
+            'Using the median step found across all rasters.')
+        d = np.median(d)
+
+    margin_px = int(np.ceil(margin / d))
+    new_shape = 2 * margin_px + arr.shape[axis]
+    new_slice = slice(margin_px, - margin_px)
+
+    return new_shape, new_slice
+
 def transform_matrix(offset, mode='rotation'):
     y_shift, x_shift, ang_shift = offset
     ca = np.cos(np.deg2rad(ang_shift))
