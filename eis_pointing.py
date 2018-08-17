@@ -6,6 +6,7 @@ from astropy.io import fits
 import numpy as np
 
 from utils import cli
+from utils import eis
 from utils import files
 from utils import idl
 from utils import num
@@ -102,8 +103,16 @@ def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
         hdulist = emission.to_hdulist()
         hdulist.writeto(eis_aia_emission_file)
 
-def compute_pointing(pointing_files, eis_aia_emission_files):
-    pass
+def compute_pointing(pointing_files, emission_files, verif_dirs):
+    if not pointing_files:
+        return
+    if isinstance(verif_dirs, (str, np.character)):
+        verif_dirs = [verif_dirs]
+    for (pointing_file, emission_file, verif_dir) in \
+            zip(pointing_files, emission_files, verif_dirs):
+        eis_data = eis.EISData.from_hdulist(fits.open(emission_file))
+        pointing = eis_aia_registration.optimal_pointing(eis_data, verif_dir)
+        pointing.to_hdulist().writeto(pointing_file)
 
 
 if __name__ == '__main__':
@@ -122,4 +131,5 @@ if __name__ == '__main__':
     make(filenames['windata'], filenames['l1'], export_windata, aia_band)
     make(filenames['eis_aia_emission'], filenames['windata'],
         compute_eis_aia_emission, aia_band)
-    make(filenames['pointing'], filenames['eis_aia_emission'], compute_pointing)
+    make(filenames['pointing'], filenames['eis_aia_emission'],
+        compute_pointing, filenames['pointing_verification'])
