@@ -238,7 +238,7 @@ def get_max_location(arr, sub_px=True):
                 max_loc[dim] = dim_max
             else:
                 arr_slice[dim] = [dim_max-1, dim_max, (dim_max+1)]
-                interp_points = arr[arr_slice]
+                interp_points = arr[tuple(arr_slice)]
                 a, b, c = interp_points**2
                 d = a - 2*b + c
                 if d != 0 and not np.isnan(d):
