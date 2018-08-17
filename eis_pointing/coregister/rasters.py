@@ -123,8 +123,7 @@ def track(raster, x, y, t, ref_raster_builder,
 
 def align(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        cores=1,
-        return_offset=False):
+        cores=None, return_offset=False):
     ''' Align a raster in translation and rotation. '''
 
     # explore raster with rotation

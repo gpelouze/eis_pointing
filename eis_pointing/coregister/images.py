@@ -7,7 +7,7 @@ import numpy as np
 
 from ..utils import num
 
-def align(cube, x, y, ref_cube, ref_x, ref_y, cores=1,
+def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None,
         return_offset=False):
     ''' 2D version of align.align_cubes '''
 

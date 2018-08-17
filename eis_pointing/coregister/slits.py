@@ -216,7 +216,7 @@ def track_raster(raster, x, y, t, ref_raster_builder,
 
 def align(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        cores=1, mp_mode='track',
+        cores=None, mp_mode='track',
         return_offset=False):
     ''' Align raster individual slit positions using a reference image '''
 
