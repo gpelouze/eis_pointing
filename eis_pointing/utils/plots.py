@@ -1,4 +1,4 @@
-#!/usr/share/bin python
+#!/usr/bin/env python3
 
 def map_extent(img, coordinates):
     ''' Compute the extent to use in ax.imshow to plot an image with
