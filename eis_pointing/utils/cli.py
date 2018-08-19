@@ -24,7 +24,7 @@ def get_setup():
         'aia_band',
         type=str,
         help=("the AIA band to use for the coalignment, "
-            "eg. '193' -- CURRENTLY IGNORED"))
+            "eg. '193' -- CURRENTLY IGNORED, defaults to 193"))
     parser.add_argument(
         '-c', '--cores',
         type=int,

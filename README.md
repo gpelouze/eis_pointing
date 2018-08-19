@@ -2,12 +2,56 @@
 
 Tools to correct the pointing of Hinode/EIS. 🛰
 
+## Usage
+
+Everything is performed by `eis_pointing.py`, which should be run from the
+command line:
+
+~~~
+usage: eis_pointing.py [-h] [-c CORES] filename aia_band
+
+Coregister EIS cube.
+
+positional arguments:
+  filename              the name of the level 0 EIS file, eg.
+                        'eis_l0_20100815_192002'
+  aia_band              the AIA band to use for the coalignment, eg. '193' --
+                        CURRENTLY IGNORED, defaults to 193
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CORES, --cores CORES
+                        maximum number of cores used for parallelisation
+~~~
+
+**Example:**
+
+~~~
+./eis_pointing.py -c16 eis_l0_20140810_042212 193
+~~~
+
+**Note:** in order for all components to work correctly, `eis_pointing.py` must
+be run from the directory it is stored in, as shown in the example.
+
+## Installation
+
+1. Clone this repository.
+2. Satisfy the following python dependencies: astropy, numpy, scipy,
+   matplotlib, dateutil, [pySitools2], and [align_images].
+3. If needed, install Solar Soft making sure that EIS is in the instrument list. If SSW
+   is not installed in `/usr/local/ssw`, set the environment variable `SSW` to
+   the appropriate path before running `eis_pointing.py`.
+
+[pySitools2]: http://medocias.github.io/pySitools2_1.0/
+[align_images]: https://git.ias.u-psud.fr/gpelouze/align_images
+
+
 ## Code structure
 
 ### Pipeline
 
 `eis_pointing.py` performs all the following steps to determine the optimal
-pointing data from EIS level 0 files. 
+pointing data from EIS level 0 files.
 
 1. `prep.pro` generates `eis_l1_<date>.fits` from `eis_l0_<date>.fits`. Both
    files are found in the EIS data files and directory structure described in
@@ -33,31 +77,26 @@ pointing data from EIS level 0 files.
 ### Coregistration functions: `coregister/`
 
 - `rasters.py` contains functions to register images in translation and
-  rotation. 
+  rotation.
 - `slits.py` functions to register slit positions (ie. vertical columns in an
   image) separately.
 
 ### Utility functions shared by different components `utils/`
 
 - `aia_raster.py`: defines `AIARasterGenerator` that builds synthetic rasters
-  from AIA data. Also contains `SimpleCache` and `FileCache` (**TODO**).
+  from AIA data. Also contains `SimpleCache` and `FileCache`.
 - `cli.py`: argument parsing and output display.
-- `eis.py` (**TODO**), `aia.py`: functions to handle native EIS and AIA data, filenames,
+- `eis.py`, `aia.py`: functions to handle native EIS and AIA data, filenames,
   and data queries. This does not take care of transformed data such as
   `AIARasterGenerator`.
-  **TODO:** some functions from [`sol.data`] go here.
 - `files.py`: manage local filenames (ie. those in `io/`); canonical EIS or AIA
   filenames are handled in `eis.py` or `aia.py`.
 - `idl.py`: run IDL or SSW code from Python, load and format data returned by
   IDL. Contains `IDLFunction`, `SSWFunction` and `IDLStructure`.
 - `num.py`: tools that extend numpy or scipy.
-- `plots.py` (**TODO**): generate all plots from step 4.
+- `plots.py`: help generate plots at step 4.
 - `sun.py`: generic solar computations.
 
-
-[`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
-[`sol`]: https://git.ias.u-psud.fr/gpelouze/sol
-[`sol.data`]: https://git.ias.u-psud.fr/gpelouze/sol/tree/master/data
 
 ## TODO
 
@@ -79,3 +118,6 @@ pointing data from EIS level 0 files.
 - ~~implement `utils.aia_raster.FileCache`~~
 - download EIS file from the MSSL archive if it is not found; this would
   require using `sol.data.eis.get_fits`.
+- remove dependency on [`align_images`]
+
+[`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
