@@ -134,7 +134,7 @@ class SSWFunction(IDLFunction):
     _files_templates = {
         'csh': '''
             #!/bin/csh -f
-            setenv SSW /usr/local/ssw
+            setenv SSW {self.ssw_path}
             setenv SSW_INSTR {self.instruments}
             source $SSW/gen/setup/setup.ssw
             sswidl {self.filename_base}.bat
@@ -145,7 +145,9 @@ class SSWFunction(IDLFunction):
             ''',
         }
 
-    def __init__(self, *args, instruments='nox', **kwargs):
+    def __init__(self, *args,
+            instruments='nox', ssw_path='/usr/local/ssw',
+            **kwargs):
         self.instruments = instruments
         super().__init__(*args, **kwargs)
 

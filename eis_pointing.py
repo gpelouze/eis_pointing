@@ -14,6 +14,12 @@ from eis_pointing.utils import num
 from eis_pointing import eis_aia_emission
 from eis_pointing import eis_aia_registration
 
+# Install path of Solar Soft
+try:
+    SSW = os.environ['SSW']
+except KeyError:
+    SSW = '/usr/local/ssw'
+
 # Long IDL list inputs are split into into
 # smaller chunks to avoid bizarre bugs.
 IDL_CHUNKS = 25
@@ -75,7 +81,9 @@ def prepare_data(l1_files, l0_files):
     if not l0_files:
         return
     for fp in num.chunks(l0_files, IDL_CHUNKS):
-        prep = idl.SSWFunction('prep', arguments=[fp], instruments='eis')
+        prep = idl.SSWFunction(
+            'prep', arguments=[fp],
+            instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
 def export_windata(wd_files, l1_files, aia_band):
@@ -94,8 +102,9 @@ def export_windata(wd_files, l1_files, aia_band):
     for fp in num.chunks(list(zip(wd_files, l1_files)), IDL_CHUNKS):
         wd = [f[0] for f in fp]
         l1 = [f[1] for f in fp]
-        prep = idl.SSWFunction('export_windata',
-            arguments=[wd, l1, aia_band], instruments='eis')
+        prep = idl.SSWFunction(
+            'export_windata', arguments=[wd, l1, aia_band],
+            instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
 def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
