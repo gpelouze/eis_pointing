@@ -13,6 +13,7 @@ class Files(dict):
         'pointing': ('io/pointing', 'pointing', '.fits'),
         'pointing_verification': ('io/pointing_verification', '', '/'),
         'synthetic_raster_cache': ('io/cache', 'synthetic_raster', '.npy'),
+        'eis_name': ('', 'eis_l0', ''),
         }
 
     def __init__(self, eis_l0_filename, aia_band):
@@ -41,7 +42,7 @@ class Files(dict):
 
     def mk_output_dirs(self):
         for (d, _, _) in Files.data_types.values():
-            if not os.path.exists(d):
+            if d and not os.path.exists(d):
                 os.makedirs(d)
 
     def _transform_filenames(self, fname_l0, datatype, prefix='', suffix=''):

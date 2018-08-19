@@ -72,7 +72,7 @@ pointing data from EIS level 0 files.
   `coregister.slits`, using components from [`align_images`].~~
 - ~~refactor `__main__` of `to_integrate/coregister_eis_aia.py` into
   `eis_pointing.compute_pointing`, using `coregister` submodules.~~
-- refactor `utils.plots`
+- ~~refactor `utils.plots`~~
 
 ### Optional
 
