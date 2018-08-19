@@ -5,10 +5,7 @@ import os
 
 from astropy import time
 import numpy as np
-try:
-    import sitools2.clients.sdo_client_medoc as md
-except:
-    print('Cannot import sitools2.')
+import sitools2.clients.sdo_client_medoc as md
 
 from . import num
 
