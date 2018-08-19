@@ -4,6 +4,11 @@ import datetime
 import os
 
 import numpy as np
+import scipy.interpolate as si
+
+import matplotlib as mpl
+from matplotlib.backends import backend_pdf
+import matplotlib.pyplot as plt
 
 from .utils import aia_raster
 from .utils import cli
@@ -15,7 +20,7 @@ from . import coregister as cr
 
 class OptPointingVerif(object):
     def __init__(self,
-            verif_dir, eis_name,
+            verif_dir, eis_name, aia_band,
             old_pointing, new_pointing,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,
@@ -24,6 +29,7 @@ class OptPointingVerif(object):
 
         self.verif_dir = verif_dir
         self.eis_name = eis_name
+        self.aia_band = aia_band
         self.old_pointing = old_pointing
         self.new_pointing = new_pointing
         self.raster_builder = raster_builder
@@ -54,7 +60,6 @@ class OptPointingVerif(object):
 
     def save_summary(self):
         ''' Print and save yaml summary '''
-        summary = '---\n'
         run_specs = [
             ('verif_dir', self.verif_dir),
             ('steps', self._repr_steps(
@@ -62,14 +67,14 @@ class OptPointingVerif(object):
                 self.ranges,
                 self.offsets,
                 self.cross_correlations,
-                indent=4)),
-            ('exec_time', stop_time - start_time),
+                indent=2)),
+            ('exec_time', self.stop_time - self.start_time),
             ]
-        print('run:')
+        summary = '---\n'
         for spec in run_specs:
-            summary += self._repr_kv(*spec, indent=2)
-        summary += '\n...'
-        print('\n', summary, '\n')
+            summary += self._repr_kv(*spec, indent=0)
+        summary += '...\n'
+        print('\n', summary, '\n', sep='')
         with open(os.path.join(self.verif_dir, 'summary.yml'), 'w') as f:
             f.write(summary)
 
@@ -78,7 +83,7 @@ class OptPointingVerif(object):
         offset[0], offset[1] = offset[1], offset[0]
         return offset
 
-    def _repr_kv(self, name, value, indent=0, sep=': '):
+    def _repr_kv(self, name, value, indent=0, sep=': ', end='\n'):
         form = '{:#.3g}'
         if isinstance(value, (list, tuple)):
             value = [form.format(v)
@@ -92,7 +97,7 @@ class OptPointingVerif(object):
             value = form.format(value)
         else:
             value = str(value)
-        string = ''.join([indent * ' ', name, sep, str(value), '\n'])
+        string = ''.join([indent * ' ', name, sep, str(value), end])
         return string
 
     def _repr_steps(self, titles, all_ranges, offsets, ccs, indent=0):
@@ -107,6 +112,8 @@ class OptPointingVerif(object):
             if len(offset) <= 3:
                 ret += self._repr_kv('offset', self._repr_offset(offset), indent=indent)
                 ret += self._repr_kv('cc_max', np.nanmax(cc), indent=indent)
+        if ret[-1] == '\n':
+            ret = ret[:-1]
         return ret
 
     def save_figures(self):
@@ -152,7 +159,7 @@ class OptPointingVerif(object):
             plt.gca(),
             self.aia_int_interp, coordinates=[self.x_interp, self.y_interp],
             cmap='gray', norm=mpl.colors.LogNorm())
-        plt.title('synthetic raster from AIA 193') # FIXME
+        plt.title('synthetic raster from AIA {}'.format(aia_band))
         plt.xlabel('X [arcsec]')
         plt.ylabel('Y [arcsec]')
         plt.savefig(pp)
@@ -166,7 +173,7 @@ class OptPointingVerif(object):
         vlim = np.nanmax(np.abs(int_diff))
         im = plots.plot_map(
             plt.gca(),
-            self.int_diff, coordinates=[self.x_interp, self.y_interp],
+            int_diff, coordinates=[self.x_interp, self.y_interp],
             cmap='gray', vmin=-vlim, vmax=+vlim, norm=mpl.colors.SymLogNorm(.1))
         plt.colorbar(im)
         plt.title('normalised EIS − AIA')
@@ -208,7 +215,7 @@ class OptPointingVerif(object):
         pp.close()
 
 
-def optimal_pointing(eis_data, cores=None,
+def optimal_pointing(eis_data, cores=None, aia_band=None,
         verif_dir=None, aia_cache=None, eis_name=None):
     ''' Determine the EIS pointing using AIA data as a reference.
 
@@ -230,8 +237,6 @@ def optimal_pointing(eis_data, cores=None,
     pointing : eis.EISPointing
         Optimal EIS pointing.
     '''
-
-    wl0 = 195.119 # FIXME
 
     cli.print_now('> build relative and absolute date arrays') # ----------------------
     dates_rel = num.seconds_to_timedelta(eis_data.pointing.t)
@@ -257,7 +262,7 @@ def optimal_pointing(eis_data, cores=None,
     raster_builder = aia_raster.SyntheticRasterBuilder(
         dates=[np.min(dates_abs), np.max(dates_abs)],
         date_ref=date_ref,
-        channel=eis.get_aia_channel(wl0),
+        channel=aia_band,
         file_cache=aia_cache,
         )
     aia_int = raster_builder.get_raster(
@@ -349,7 +354,7 @@ def optimal_pointing(eis_data, cores=None,
 
     if verif_dir:
         verif = OptPointingVerif(
-            verif_dir, eis_name,
+            verif_dir, eis_name, aia_band,
             eis_data.pointing, new_pointing,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,

@@ -116,8 +116,6 @@ if __name__ == '__main__':
 
     # get configuration from command line
     args = cli.get_setup()
-    eis_l0_name = args.filename
-    aia_band = args.aia_band
 
     # get filenames paths
     filenames = files.Files(args.filename, args.aia_band)
@@ -125,12 +123,13 @@ if __name__ == '__main__':
 
     # make targets
     make(filenames['l1'], filenames['l0'], prepare_data)
-    make(filenames['windata'], filenames['l1'], export_windata, aia_band)
+    make(filenames['windata'], filenames['l1'], export_windata, args.aia_band)
     make(filenames['eis_aia_emission'], filenames['windata'],
-        compute_eis_aia_emission, aia_band)
+        compute_eis_aia_emission, args.aia_band)
     make(filenames['pointing'], filenames['eis_aia_emission'],
         compute_pointing,
         verif_dir=filenames['pointing_verification'],
         aia_cache=filenames['synthetic_raster_cache'],
         eis_name=filenames['eis_name'],
-        cores=args.cores)
+        cores=args.cores,
+        aia_band=args.aia_band)
