@@ -159,7 +159,7 @@ class OptPointingVerif(object):
             plt.gca(),
             self.aia_int_interp, coordinates=[self.x_interp, self.y_interp],
             cmap='gray', norm=mpl.colors.LogNorm())
-        plt.title('synthetic raster from AIA {}'.format(aia_band))
+        plt.title('synthetic raster from AIA {}'.format(self.aia_band))
         plt.xlabel('X [arcsec]')
         plt.ylabel('Y [arcsec]')
         plt.savefig(pp)
