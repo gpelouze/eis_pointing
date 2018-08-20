@@ -149,14 +149,8 @@ def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
     cc = compute_cc(arr, x, y, t, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set, **kwargs)
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('error')
-        try:
-            offset = num.get_max_location(cc)
-            # transform offset to arcsecs and degrees
-            offset = tools.convert_offsets(offset, [y_set, x_set, a_set])
-        except RuntimeWarning:
-            offset = np.array([0, 0, 0])
+    offset = num.get_max_location(cc)
+    offset = tools.convert_offsets(offset, [y_set, x_set, a_set])
 
     if return_full_cc:
         return offset, cc
