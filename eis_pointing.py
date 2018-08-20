@@ -78,8 +78,6 @@ def prepare_data(l1_files, l0_files):
         List of absolute paths to the l0 fits from which to prepare the l1
         files.
     '''
-    if not l0_files:
-        return
     for fp in num.chunks(l0_files, IDL_CHUNKS):
         prep = idl.SSWFunction(
             'prep', arguments=[fp],
@@ -97,8 +95,6 @@ def export_windata(wd_files, l1_files, aia_band):
         List of absolute paths to the l0 fits from which to prepare the l1
         files.
     '''
-    if not wd_files:
-        return
     for fp in num.chunks(list(zip(wd_files, l1_files)), IDL_CHUNKS):
         wd = [f[0] for f in fp]
         l1 = [f[1] for f in fp]
@@ -108,8 +104,6 @@ def export_windata(wd_files, l1_files, aia_band):
         out, err = prep.run()
 
 def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
-    if not eis_aia_emission_files:
-        return
     for eis_aia_emission_file, wd_file in zip(eis_aia_emission_files, wd_files):
         windata = idl.IDLStructure(wd_file)
         emission = eis_aia_emission.compute(windata, aia_band)
@@ -117,8 +111,6 @@ def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
         hdulist.writeto(eis_aia_emission_file)
 
 def compute_pointing(pointing_files, emission_files, **kwargs):
-    if not pointing_files:
-        return
     for (pointing_file, emission_file) in zip(pointing_files, emission_files):
         eis_data = eis.EISData.from_hdulist(fits.open(emission_file))
         pointing = eis_aia_registration.optimal_pointing(eis_data, **kwargs)
