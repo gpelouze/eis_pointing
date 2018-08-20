@@ -221,6 +221,8 @@ def get_max_location(arr, sub_px=True):
         Coordinates of the maximum of the input array.
     '''
     maxcc = np.nanmax(arr)
+    if np.isnan(maxcc):
+        return np.array([np.nan] * arr.ndim)
     max_px = np.where(arr == maxcc)
     if not np.all([len(m) == 1 for m in max_px]):
         warnings.warn('could not find a unique maximum', RuntimeWarning)
