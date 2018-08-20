@@ -61,6 +61,10 @@ def make(targets, sources, method, *args, **kwargs):
     else:
         cli.print_now( 'skipping', method.__name__)
 
+def get_fits(l0_files, eis_names):
+    for l0_file, eis_name in zip(l0_files, eis_names):
+        eis.get_fits(eis_name, custom_dest=l0_file)
+
 def prepare_data(l1_files, l0_files):
     ''' Apply eis_prep to the l0 fits given in input.
 
@@ -127,6 +131,7 @@ if __name__ == '__main__':
     filenames.mk_output_dirs()
 
     # make targets
+    make(filenames['l0'], filenames['eis_name'], get_fits)
     make(filenames['l1'], filenames['l0'], prepare_data)
     make(filenames['windata'], filenames['l1'], export_windata, args.aia_band)
     make(filenames['eis_aia_emission'], filenames['windata'],

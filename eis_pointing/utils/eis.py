@@ -6,10 +6,12 @@ import dateutil.parser
 import operator
 import os
 import re
+import shutil
 import warnings
 
 from astropy.io import fits
 import numpy as np
+import requests
 
 from . import num
 
@@ -323,3 +325,77 @@ def get_aia_channel(line_wvl):
         '284.163': '335',
         }
     return wvl_conv[line_wvl]
+
+def get_fits(eis_file, custom_dest=None, force_download=False, silent=True):
+    ''' Get a given EIS FITS. If not found locally, download it from the MSSL
+    SDC.
+
+    Parameters
+    ==========
+    eis_file : str or dict.
+        The EIS filename (eg 'eis_l0_20110803_113520'), path, URL in the MSSL
+        archives, or 'prop dict'.
+    custom_dest : str (default: None)
+        If set, the location where to save the FITS. If not set, the FITS is
+        saved to $SOLARDATA/hinode/eis/...
+    force_download : bool (default: False)
+        If True, always download the FITS, overwriting any local version.
+
+    Notes
+    =====
+    Some regular FITS in the MSSL archives have the wrong extension, .fits.gz.
+    This function tests if it is the case, and renames the file if needed.
+
+    **Warning:** when using `force_download=True` to retrieve, eg.
+    `foo.fits.gz`, any existing `foo.fits` might be overwritten.
+    '''
+
+    # determine fits url and save path
+    eis_properties = prop_from_filename(eis_file)
+    fits_url = fits_path(eis_properties, url=True, gz=True)
+    if custom_dest:
+        fits_save_path = custom_dest
+    else:
+        fits_save_path = os.path.join(
+            os.environ.get('SOLARDATA'),
+            'hinode',
+            fits_path(eis_properties, gz=True))
+    # determine if .fits.gz or .fits
+    fits_base, fits_ext = os.path.splitext(fits_save_path)
+    if fits_ext == '.gz':
+        fits_save_path_unzip = fits_base
+    else:
+        fits_save_path_unzip = fits_save_path
+
+    # download path
+    if not (os.path.exists(fits_save_path) or
+            os.path.exists(fits_save_path_unzip)) or force_download:
+        if not silent:
+            print('Downloading {} to {}'.format(fits_url, fits_save_path))
+        response = requests.get(fits_url, stream=True)
+        if not response.ok:
+            m = 'Could not get {}'.format(fits_url)
+            raise ValueError(m)
+        fits_dir, fits_filename = os.path.split(fits_save_path)
+        if not os.path.exists(fits_dir):
+            os.makedirs(fits_dir)
+        with open(fits_save_path, 'wb') as f:
+            for block in response.iter_content(1024):
+                f.write(block)
+    try:
+        # print('Trying {}'.format(fits_save_path))
+        f = fits.open(fits_save_path)
+    except IOError as e:
+        if fits_ext == '.gz':
+            # then the error is most likely due to the fact that the file is a
+            # regular FITS with a .fits.gz extension, or has already been
+            # deflated.
+            if not os.path.exists(fits_save_path_unzip) or force_download:
+                shutil.move(fits_save_path, fits_save_path_unzip)
+            # print('Opening {}'.format(fits_save_path_unzip))
+            f = fits.open(fits_save_path_unzip)
+        else:
+            raise e
+    if not silent:
+        print('Opened {}'.format(f.filename()))
+    return f
