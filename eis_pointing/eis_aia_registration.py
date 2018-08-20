@@ -107,8 +107,10 @@ class OptPointingVerif(object):
             ret += ' '*(indent-2) + '- '
             ret += self._repr_kv('name', name, indent=0)
             if ranges:
-                for n, r in zip('yxa', ranges):
-                    ret += self._repr_kv('range_' + n, r, indent=indent)
+                ry, rx, ra = ranges
+                ret += self._repr_kv('range_x', rx, indent=indent)
+                ret += self._repr_kv('range_y', ry, indent=indent)
+                ret += self._repr_kv('range_a', ra, indent=indent)
             if len(offset) <= 3:
                 ret += self._repr_kv('offset', self._repr_offset(offset), indent=indent)
                 ret += self._repr_kv('cc_max', np.nanmax(cc), indent=indent)
