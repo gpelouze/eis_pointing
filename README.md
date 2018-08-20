@@ -116,8 +116,8 @@ pointing data from EIS level 0 files.
 ### Optional
 
 - ~~implement `utils.aia_raster.FileCache`~~
-- download EIS file from the MSSL archive if it is not found; this would
-  require using `sol.data.eis.get_fits`.
+- ~~download EIS file from the MSSL archive if it is not found; this would
+  require using `sol.data.eis.get_fits`.~~
 - remove dependency on [`align_images`]
 
 [`align_images`]: https://git.ias.u-psud.fr/gpelouze/align_images
