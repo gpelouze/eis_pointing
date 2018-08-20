@@ -149,6 +149,7 @@ class SSWFunction(IDLFunction):
             instruments='nox', ssw_path='/usr/local/ssw',
             **kwargs):
         self.instruments = instruments
+        self.ssw_path = ssw_path
         super().__init__(*args, **kwargs)
 
 class IDLStructure(dict):
