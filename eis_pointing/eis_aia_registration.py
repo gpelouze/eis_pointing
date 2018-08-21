@@ -122,7 +122,6 @@ class OptPointingVerif(object):
         ''' plot alignment results '''
         self.prepare_plot()
         self.plot_intensity()
-        self.plot_diff()
         self.plot_slit_align()
 
     def prepare_plot(self):
@@ -167,21 +166,6 @@ class OptPointingVerif(object):
         plt.savefig(pp)
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         pp.close()
-
-    def plot_diff(self):
-        plt.clf()
-        norm = lambda arr: (arr - np.nanmean(arr)) / np.nanstd(arr)
-        int_diff = norm(self.eis_int_interp) - norm(self.aia_int_interp)
-        vlim = np.nanmax(np.abs(int_diff))
-        im = plots.plot_map(
-            plt.gca(),
-            int_diff, coordinates=[self.x_interp, self.y_interp],
-            cmap='gray', vmin=-vlim, vmax=+vlim, norm=mpl.colors.SymLogNorm(.1))
-        plt.colorbar(im)
-        plt.title('normalised EIS − AIA')
-        plt.xlabel('X [arcsec]')
-        plt.ylabel('Y [arcsec]')
-        plt.savefig(os.path.join(self.verif_dir, 'diff.pdf'))
 
     def plot_slit_align(self):
         ''' plot offsets and slit coordinates '''
