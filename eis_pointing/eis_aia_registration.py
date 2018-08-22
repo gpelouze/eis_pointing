@@ -354,12 +354,16 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
 
     stop_time = datetime.datetime.now()
 
+    # 'old' pointing is the original EIS pointing corrected for translation
+    old_y = eis_data.pointing.y - offsets[0][0]
+    old_x = eis_data.pointing.x - offsets[0][1]
+    old_pointing = eis.EISPointing(old_x, old_y, eis_data.pointing.t, date_ref)
     new_pointing = eis.EISPointing(x, y, eis_data.pointing.t, date_ref)
 
     if verif_dir:
         verif = OptPointingVerif(
             verif_dir, eis_name, aia_band,
-            eis_data.pointing, new_pointing,
+            old_pointing, new_pointing,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,
             start_time, stop_time,
