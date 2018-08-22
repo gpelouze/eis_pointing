@@ -71,11 +71,10 @@ class OptPointingVerif(object):
                 indent=2)),
             ('exec_time', self.stop_time - self.start_time),
             ]
-        summary = '---\n'
+        summary = ''
         for spec in run_specs:
             summary += self._repr_kv(*spec, indent=0)
-        summary += '...\n'
-        print('\n', summary, '\n', sep='')
+        print('\n---\n', summary, '...', sep='')
         with open(os.path.join(self.verif_dir, 'summary.yml'), 'w') as f:
             f.write(summary)
 
