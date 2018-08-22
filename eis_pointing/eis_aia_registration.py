@@ -120,51 +120,69 @@ class OptPointingVerif(object):
 
     def save_figures(self):
         ''' plot alignment results '''
-        self.prepare_plot()
-        self.plot_intensity()
+        self.plot_intensity(self.old_pointing, name='old')
+        self.plot_intensity(self.new_pointing, name='new')
         self.plot_slit_align()
 
-    def prepare_plot(self):
+    def _get_interpolated_maps(self, pointing):
         ''' get maps and interpolate them on an evenly-spaced grid '''
 
-        self.aia_int = self.raster_builder.get_raster(
-            self.new_pointing.x, self.new_pointing.y,
-            self.new_pointing.t / 3600,
+        x, y = pointing.x, pointing.y
+
+        aia_int = self.raster_builder.get_raster(
+            x, y, pointing.t / 3600,
             extrapolate_t=True)
 
-        x, y = self.new_pointing.x, self.new_pointing.y
-        self.y_interp = np.linspace(y.min(), y.max(), y.shape[0])
-        self.x_interp = np.linspace(x.min(), x.max(), x.shape[1])
-        xi_interp = np.moveaxis(np.array(np.meshgrid(self.x_interp, self.y_interp)), 0, -1)
+        y_interp = np.linspace(y.min(), y.max(), y.shape[0])
+        x_interp = np.linspace(x.min(), x.max(), x.shape[1])
+        xi_interp = np.moveaxis(np.array(np.meshgrid(x_interp, y_interp)), 0, -1)
         points = (x.flatten(), y.flatten())
 
-        self.eis_int_interp = si.LinearNDInterpolator(points, self.eis_int.flatten())
-        self.eis_int_interp = self.eis_int_interp(xi_interp)
-        self.aia_int_interp = si.LinearNDInterpolator(points, self.aia_int.flatten())
-        self.aia_int_interp = self.aia_int_interp(xi_interp)
+        eis_int_interp = si.LinearNDInterpolator(points, self.eis_int.flatten())
+        eis_int_interp = eis_int_interp(xi_interp)
+        aia_int_interp = si.LinearNDInterpolator(points, aia_int.flatten())
+        aia_int_interp = aia_int_interp(xi_interp)
 
-    def plot_intensity(self):
+        return x_interp, y_interp, eis_int_interp, aia_int_interp
+
+    def _normalize_intensity(self, a, b, norm=mpl.colors.Normalize):
+        def normalize(arr):
+            arr_stat = arr[~(arr == 0)] # exclude possibly missing AIA data
+            arr = (arr - np.nanmean(arr_stat)) / np.nanstd(arr_stat)
+            return arr
+        a = normalize(a)
+        b = normalize(b)
+        offset = - np.nanmin((a, b))
+        offset += .1
+        a += offset
+        b += offset
+        norm = norm(vmin=np.nanmin((a, b)), vmax=np.nanmax((a, b)))
+        return a, b, norm
+
+    def plot_intensity(self, pointing, name=None):
         ''' plot intensity maps of EIS and AIA rasters '''
-        pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, 'intensity.pdf'))
-        plt.clf() # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        plots.plot_map(
-            plt.gca(),
-            self.eis_int_interp, coordinates=[self.x_interp, self.y_interp],
-            cmap='gray', norm=mpl.colors.LogNorm())
-        plt.title('EIS')
-        plt.xlabel('X [arcsec]')
-        plt.ylabel('Y [arcsec]')
-        plt.savefig(pp)
-        plt.clf() # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        plots.plot_map(
-            plt.gca(),
-            self.aia_int_interp, coordinates=[self.x_interp, self.y_interp],
-            cmap='gray', norm=mpl.colors.LogNorm())
-        plt.title('synthetic raster from AIA {}'.format(self.aia_band))
-        plt.xlabel('X [arcsec]')
-        plt.ylabel('Y [arcsec]')
-        plt.savefig(pp)
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        if name:
+            title = 'intensity_{}.pdf'.format(name)
+        else:
+            title = 'intensity.pdf'
+        pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, title))
+        x, y, eis_int, aia_int = self._get_interpolated_maps(pointing)
+        eis_int, aia_int, norm = self._normalize_intensity(
+            eis_int, aia_int, mpl.colors.LogNorm)
+        intensity_plots = (
+            (eis_int, 'EIS'),
+            (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
+            )
+        for int_map, title in intensity_plots:
+            plt.clf()
+            plots.plot_map(
+                plt.gca(),
+                int_map, coordinates=[x, y],
+                cmap='gray', norm=norm)
+            plt.title(title)
+            plt.xlabel('X [arcsec]')
+            plt.ylabel('Y [arcsec]')
+            plt.savefig(pp)
         pp.close()
 
     def plot_slit_align(self):
