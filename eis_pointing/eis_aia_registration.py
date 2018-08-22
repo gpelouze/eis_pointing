@@ -21,7 +21,7 @@ from . import coregister as cr
 class OptPointingVerif(object):
     def __init__(self,
             verif_dir, eis_name, aia_band,
-            old_pointing, new_pointing,
+            original_pointing, trans_pointing, optimal_pointing,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,
             start_time, stop_time,
@@ -30,8 +30,9 @@ class OptPointingVerif(object):
         self.verif_dir = verif_dir
         self.eis_name = eis_name
         self.aia_band = aia_band
-        self.old_pointing = old_pointing
-        self.new_pointing = new_pointing
+        self.original_pointing = original_pointing
+        self.trans_pointing = trans_pointing
+        self.optimal_pointing = optimal_pointing
         self.raster_builder = raster_builder
         self.eis_int = eis_int
         self.titles = titles
@@ -55,7 +56,7 @@ class OptPointingVerif(object):
             os.path.join(self.verif_dir, 'offsets.npz'),
             offset=np.array(self.offsets, dtype=object),
             cc=np.array(self.cross_correlations, dtype=object),
-            x=self.new_pointing.x, y=self.new_pointing.y,
+            x=self.optimal_pointing.x, y=self.optimal_pointing.y,
             )
 
     def save_summary(self):
@@ -120,8 +121,8 @@ class OptPointingVerif(object):
 
     def save_figures(self):
         ''' plot alignment results '''
-        self.plot_intensity(self.old_pointing, name='old')
-        self.plot_intensity(self.new_pointing, name='new')
+        self.plot_intensity(self.trans_pointing, name='translation_only')
+        self.plot_intensity(self.optimal_pointing, name='optimal_pointing')
         self.plot_slit_align()
 
     def _get_interpolated_maps(self, pointing):
@@ -204,8 +205,8 @@ class OptPointingVerif(object):
         plt.savefig(pp)
         # new coordinates
         plots = [
-            ('X', self.new_pointing.x, self.old_pointing.x),
-            ('Y', self.new_pointing.y, self.old_pointing.y),
+            ('X', self.optimal_pointing.x, self.original_pointing.x),
+            ('Y', self.optimal_pointing.y, self.original_pointing.y),
             ]
         for name, aligned, original in plots:
             plt.clf()
@@ -354,20 +355,20 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
 
     stop_time = datetime.datetime.now()
 
-    # 'old' pointing is the original EIS pointing corrected for translation
-    old_y = eis_data.pointing.y - offsets[0][0]
-    old_x = eis_data.pointing.x - offsets[0][1]
-    old_pointing = eis.EISPointing(old_x, old_y, eis_data.pointing.t, date_ref)
-    new_pointing = eis.EISPointing(x, y, eis_data.pointing.t, date_ref)
+    # 'trans' pointing is the original EIS pointing corrected for translation
+    trans_y = eis_data.pointing.y - offsets[0][0]
+    trans_x = eis_data.pointing.x - offsets[0][1]
+    trans_pointing = eis.EISPointing(trans_x, trans_y, eis_data.pointing.t, date_ref)
+    optimal_pointing = eis.EISPointing(x, y, eis_data.pointing.t, date_ref)
 
     if verif_dir:
         verif = OptPointingVerif(
             verif_dir, eis_name, aia_band,
-            old_pointing, new_pointing,
+            eis_data.pointing, trans_pointing, optimal_pointing,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,
             start_time, stop_time,
             )
         verif.save_all()
 
-    return new_pointing
+    return optimal_pointing
