@@ -8,16 +8,18 @@ from . import eis
 class Files(dict):
     data_types = {
         # key: path (directory only), prefix, extension
-        'windata': ('io/windata', 'windata', '.sav'),
-        'eis_aia_emission': ('io/eis_aia_emission', 'eis_aia_emission', '.fits'),
-        'pointing': ('io/pointing', 'pointing', '.fits'),
-        'pointing_verification': ('io/pointing_verification', '', '/'),
-        'synthetic_raster_cache': ('io/cache', 'synthetic_raster', '.npy'),
+        'windata': ('windata', 'windata', '.sav'),
+        'eis_aia_emission': ('eis_aia_emission', 'eis_aia_emission', '.fits'),
+        'pointing': ('pointing', 'pointing', '.fits'),
+        'pointing_verification': ('pointing_verification', '', '/'),
+        'synthetic_raster_cache': ('cache', 'synthetic_raster', '.npy'),
         'eis_name': ('', 'eis_l0', ''),
         }
 
-    def __init__(self, eis_l0_filename):
+    def __init__(self, eis_l0_filename, io_dir):
         filenames = {}
+
+        self.io_dir = os.path.realpath(io_dir)
 
         # EIS files in the Hinode directory structure
         for levelname in ('l0', 'l1'):
@@ -30,6 +32,8 @@ class Files(dict):
 
         # local files
         for key, (path, name, extension) in Files.data_types.items():
+            if path:
+                path = os.path.join(io_dir, path)
             path = os.path.join(path, '')
             filenames[key] = self._transform_filenames(
                 eis_l0_filename, name,
@@ -38,6 +42,8 @@ class Files(dict):
         super().__init__(filenames)
 
     def mk_output_dirs(self):
+        if not os.path.exists(self.io_dir):
+            os.makedirs(self.io_dir)
         for (d, _, _) in Files.data_types.values():
             if d and not os.path.exists(d):
                 os.makedirs(d)

@@ -24,6 +24,9 @@ except KeyError:
 # smaller chunks to avoid bizarre bugs.
 IDL_CHUNKS = 25
 
+IDL_CWD = os.path.dirname(os.path.realpath(__file__))
+IDL_CWD = os.path.join(IDL_CWD, 'eis_pointing')
+
 def make(targets, sources, method, *args, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
 
@@ -85,6 +88,7 @@ def prepare_data(l1_files, l0_files):
     for fp in num.chunks(l0_files, IDL_CHUNKS):
         prep = idl.SSWFunction(
             'prep', arguments=[fp],
+            cwd=IDL_CWD,
             instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
@@ -104,6 +108,7 @@ def export_windata(wd_files, l1_files, wl0):
         l1 = [f[1] for f in fp]
         prep = idl.SSWFunction(
             'export_windata', arguments=[wd, l1, wl0],
+            cwd=IDL_CWD,
             instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
@@ -127,7 +132,7 @@ if __name__ == '__main__':
     args = cli.get_setup()
 
     # get filenames paths
-    filenames = files.Files(args.filename)
+    filenames = files.Files(args.filename, args.io)
     filenames.mk_output_dirs()
 
     aia_band = 193

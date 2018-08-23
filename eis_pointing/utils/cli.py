@@ -30,6 +30,11 @@ def get_setup():
         type=str,
         help=('path to a yaml file containing the registration steps.'))
     parser.add_argument(
+        '--io',
+        type=str,
+        default='io',
+        help=('directory where output files are written, default: ./io'))
+    parser.add_argument(
         '-c', '--cores',
         type=int,
         default=4,

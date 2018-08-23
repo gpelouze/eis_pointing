@@ -8,7 +8,7 @@ Everything is performed by `eis_pointing.py`, which should be run from the
 command line:
 
 ~~~
-usage: eis_pointing.py [-h] [-s STEPS_FILE] [-c CORES] filename
+usage: eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES] filename
 
 Coregister EIS cube.
 
@@ -20,6 +20,7 @@ optional arguments:
   -h, --help            show this help message and exit
   -s STEPS_FILE, --steps-file STEPS_FILE
                         path to a yaml file containing the registration steps.
+  --io IO               directory where output files are written, default: ./io
   -c CORES, --cores CORES
                         maximum number of cores used for parallelisation
 ~~~
@@ -30,9 +31,6 @@ optional arguments:
 ./eis_pointing.py -c16 eis_l0_20140810_042212
 ./eis_pointing.py --steps-file steps/shift_only.yml eis_l0_20140810_042212
 ~~~
-
-**Note:** in order for all components to work correctly, `eis_pointing.py` must
-be run from the directory it is stored in, as shown in the example.
 
 ## Installation
 

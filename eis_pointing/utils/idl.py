@@ -22,6 +22,8 @@ class IDLFunction(object):
         The name of the IDL function to run.
     arguments : list (default: [])
         A list of arguments in text (or at least convertible to str) format.
+    cwd : str (default: '.')
+        The directory in which to execute the function.
     '''
 
     _files_templates = {
@@ -35,9 +37,10 @@ class IDLFunction(object):
             ''',
         }
 
-    def __init__(self, function, arguments=[]):
+    def __init__(self, function, arguments=[], cwd='.'):
         self.function = function
         self.arguments = arguments
+        self.cwd = cwd
         # transform list of arguments into a string
         if arguments == []:
             self.arguments_str = ''
@@ -60,7 +63,7 @@ class IDLFunction(object):
         ''' Write temporary run files to the current directory.
         '''
         for (filename, commands) in self.files.values():
-            with open(filename, 'w') as f:
+            with open(os.path.join(self.cwd, filename), 'w') as f:
                 f.write(commands)
 
     def clean(self):
@@ -68,7 +71,7 @@ class IDLFunction(object):
         directory.
         '''
         for (filename, _) in self.files.values():
-            os.remove(filename)
+            os.remove(os.path.join(self.cwd, filename))
 
     def run(self):
         ''' Run IDL function, returning stdout and stderr.
@@ -83,6 +86,7 @@ class IDLFunction(object):
                 ['csh', self.files['csh'][0]],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
+                cwd=self.cwd,
                 )
             # save and print stdout
             stdout = []
