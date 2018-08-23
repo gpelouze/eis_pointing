@@ -10,19 +10,21 @@ command line:
 ~~~
 usage: eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES] filename
 
-Coregister EIS cube.
+Determine the pointing of Hinode/EIS.
 
 positional arguments:
-  filename              the name of the level 0 EIS file, eg.
-                        'eis_l0_20100815_192002'
+  filename              The name of the level 0 EIS file, eg.
+                        'eis_l0_20100815_192002'.
 
 optional arguments:
   -h, --help            show this help message and exit
   -s STEPS_FILE, --steps-file STEPS_FILE
-                        path to a yaml file containing the registration steps.
-  --io IO               directory where output files are written, default: ./io
+                        Path to a yaml file containing the registration steps.
+  --io IO               Directory where output files are written,
+						default: ./io.
   -c CORES, --cores CORES
-                        maximum number of cores used for parallelisation
+                        Maximum number of cores used for parallelisation,
+                        default: 4.
 ~~~
 
 **Examples:**

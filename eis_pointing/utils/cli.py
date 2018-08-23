@@ -19,26 +19,26 @@ def print_now(*arg, **kwargs):
 
 def get_setup():
     parser = argparse.ArgumentParser(
-        description='Coregister EIS cube.')
+        description='Determine the pointing of Hinode/EIS.')
     parser.add_argument(
         'filename',
         type=str,
-        help=("the name of the level 0 EIS file, "
-            "eg. 'eis_l0_20100815_192002'"))
+        help=("The name of the level 0 EIS file, "
+            "eg. 'eis_l0_20100815_192002'."))
     parser.add_argument(
         '-s', '--steps-file',
         type=str,
-        help=('path to a yaml file containing the registration steps.'))
+        help=('Path to a yaml file containing the registration steps.'))
     parser.add_argument(
         '--io',
         type=str,
         default='io',
-        help=('directory where output files are written, default: ./io'))
+        help=('Directory where output files are written, default: ./io.'))
     parser.add_argument(
         '-c', '--cores',
         type=int,
         default=4,
-        help='maximum number of cores used for parallelisation')
+        help='Maximum number of cores used for parallelisation, default: 4.')
     args = parser.parse_args()
 
     return args
