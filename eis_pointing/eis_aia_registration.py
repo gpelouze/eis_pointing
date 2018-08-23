@@ -337,9 +337,7 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
         channel=aia_band,
         file_cache=aia_cache,
         )
-    aia_int = raster_builder.get_raster(
-        x, y, dates_rel_hours,
-        extrapolate_t=True)
+    raster_builder.get_data()
 
     # degrade raster_builder resolution to 3 arcsec (see DelZanna+2011)
     raster_builder.degrade_resolution(3, cores=cores)
@@ -363,6 +361,9 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
     for step in registration_steps['steps']:
         registration_type = step.pop('type')
         if registration_type == 'shift':
+            aia_int = raster_builder.get_raster(
+                x, y, dates_rel_hours,
+                extrapolate_t=True)
             result = shift_step(x, y, eis_int, aia_int, cores=cores, **step)
         elif registration_type == 'rotshift':
             result = rotshift_step(x, y, dates_rel_hours,
