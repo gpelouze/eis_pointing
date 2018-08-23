@@ -37,7 +37,7 @@ be run from the directory it is stored in, as shown in the example.
 
 1. Clone this repository.
 2. Satisfy the following python dependencies: astropy, numpy, scipy,
-   matplotlib, dateutil, [pySitools2], and [align_images].
+   matplotlib, dateutil, pyyaml, [pySitools2], and [align_images].
 3. If needed, install Solar Soft making sure that EIS is in the instrument list. If SSW
    is not installed in `/usr/local/ssw`, set the environment variable `SSW` to
    the appropriate path before running `eis_pointing.py`.

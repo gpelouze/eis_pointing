@@ -142,4 +142,5 @@ if __name__ == '__main__':
         aia_cache=filenames['synthetic_raster_cache'],
         eis_name=filenames['eis_name'],
         cores=args.cores,
-        aia_band=args.aia_band)
+        aia_band=args.aia_band,
+        steps_file=args.steps_file)

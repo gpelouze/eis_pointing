@@ -36,7 +36,7 @@ def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None,
     (y_offset, x_offset), maxcc = align_images.align.track(
         ref_cube, cube,
         sub_px=sub_px, missing=np.nan,
-        cc_function=cc_function, cc_boundary=cc_function, cores=cores,
+        cc_function=cc_function, cc_boundary=cc_boundary, cores=cores,
         )
     y_offset *= cdelty
     x_offset *= cdeltx

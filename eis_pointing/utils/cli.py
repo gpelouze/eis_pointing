@@ -2,6 +2,11 @@
 
 import argparse
 import datetime
+import re
+
+import yaml
+
+from ..coregister.tools import OffsetSet
 
 def print_now(*arg, **kwargs):
     ''' print('[time_stamp]', *arg, **kwarg)
@@ -26,6 +31,10 @@ def get_setup():
         help=("the AIA band to use for the coalignment, "
             "eg. '193' -- CURRENTLY IGNORED, defaults to 193"))
     parser.add_argument(
+        '-s', '--steps-file',
+        type=str,
+        help=('Path to a yaml file containing the registration steps.'))
+    parser.add_argument(
         '-c', '--cores',
         type=int,
         default=4,
@@ -33,3 +42,32 @@ def get_setup():
     args = parser.parse_args()
 
     return args
+
+def load_corr_steps(filename):
+    with open(filename) as f:
+        y = yaml.load(f)
+    offsetset_re = re.compile(
+        '^OffsetSet\('
+        '\s*\(\s*(?P<start>[\d+-.]+)\s*,'
+             '\s*(?P<stop>[\d+-.]+)\s*\)\s*,'
+        '\s*(?:(?:number\s*=\s*(?P<number>[\d+-]+)\s*)|'
+              '(?:step\s*=\s*(?P<step>[\d+-.]+)\s*))'
+        '\s*\)\s*$')
+    for i, step in enumerate(y['steps']):
+        for k, v in step.items():
+            try:
+                m = offsetset_re.match(v)
+            except (TypeError, AttributeError):
+                m = None
+            if m:
+                start = float(m.group('start'))
+                stop = float(m.group('stop'))
+                number = m.group('number')
+                step = m.group('step')
+                if number:
+                    number = int(number)
+                if step:
+                    step = float(step)
+                offset_set = OffsetSet((start, stop), number=number, step=step)
+                y['steps'][i][k] = offset_set
+    return y

@@ -2,6 +2,7 @@
 
 import datetime
 import os
+import warnings
 
 import numpy as np
 import scipy.interpolate as si
@@ -219,8 +220,43 @@ class OptPointingVerif(object):
         pp.close()
 
 
+def shift_step(x, y, eis_int, aia_int, cores=None, **kwargs):
+    cli.print_now('> correct translation')
+    x, y, offset = cr.images.align(
+        eis_int, x, y,
+        aia_int, x, y,
+        cores=cores, **kwargs)
+    y_offset, x_offset, cc = offset
+    offset = [y_offset, x_offset, 0]
+    offset_set = None
+    title = 'shift'
+    return title, offset_set, offset, cc, x, y
+
+def rotshift_step(x, y, dates_rel_hours, eis_int, raster_builder,
+        cores=None, **kwargs):
+    cli.print_now('> align rasters')
+    x, y, offset = cr.rasters.align(
+        eis_int, x, y, dates_rel_hours, raster_builder,
+        cores=cores, **kwargs)
+    y_offset, x_offset, a_offset, cc = offset
+    offset = [y_offset, x_offset, a_offset]
+    offset_set = (kwargs['y_set'], kwargs['x_set'], kwargs['a_set'])
+    title = 'rotshift'
+    return title, offset_set, offset, cc, x, y
+
+def slitshift_step(x, y, dates_rel_hours, eis_int, raster_builder,
+        cores=None, **kwargs):
+    cli.print_now('> align slit positions')
+    x, y, offset = cr.slits.align(
+        eis_int, x, y, dates_rel_hours, raster_builder,
+        cores=cores, **kwargs)
+    offset, cc = offset
+    offset_set = (kwargs['y_set'], kwargs['x_set'], kwargs['a_set'])
+    title = 'slitshift'
+    return title, offset_set, offset, cc, x, y
+
 def optimal_pointing(eis_data, cores=None, aia_band=None,
-        verif_dir=None, aia_cache=None, eis_name=None):
+        verif_dir=None, aia_cache=None, eis_name=None, steps_file=None):
     ''' Determine the EIS pointing using AIA data as a reference.
 
     Parameters
@@ -235,12 +271,42 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
         Path to the synthetic AIA raster builder cache file.
     eis_name : str
         Name of the l0 EIS file eg. eis_l0_20140810_010438
+    steps_file : str
+        Path to a yaml file containing the registration steps.
 
     Returns
     =======
     pointing : eis.EISPointing
         Optimal EIS pointing.
     '''
+
+    if steps_file:
+        registration_steps = cli.load_corr_steps(steps_file)
+    else:
+        warnings.warn('No steps file provided, falling back to default.')
+        registration_steps = {'steps': [
+            {'type': 'shift',
+             'cc_function': 'explicit',
+             'cc_boundary': 'drop',
+             'sub_px': True,
+             },
+            {'type': 'rotshift',
+             'x_set': OffsetSet((-10.0, 10.0), number=11),
+             'y_set': OffsetSet((-5.0, 5.0), number=11),
+             'a_set': OffsetSet((-3.0, 3.0), step=0.2),
+             },
+            {'type': 'slitshift',
+             'x_set': OffsetSet((-20.0, 20.0), number=21),
+             'y_set': OffsetSet((-20.0, 20.0), number=21),
+             'a_set': OffsetSet((0.0, 0.0), number=1),
+             'mp_mode': 'track'
+             },
+            {'type': 'rotshift',
+             'x_set': OffsetSet((-5.0, 5.0), number=11),
+             'y_set': OffsetSet((-5.0, 5.0), number=11),
+             'a_set': OffsetSet((-2.0, 2.0), step=0.2),
+             },
+            ]}
 
     cli.print_now('> build relative and absolute date arrays') # ----------------------
     dates_rel = num.seconds_to_timedelta(eis_data.pointing.t)
@@ -285,72 +351,32 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
     raster_builder.crop_data(x_cen - r, x_cen + r, y_cen - r, y_cen + r)
 
     # compute alignment -------------------------------------------------------
-    start_time = datetime.datetime.now()
-
     titles = []
+    offset_sets = []
     offsets = []
     cross_correlations = []
-    ranges = []
 
-    cli.print_now('> correct translation')
-    x, y, offset = cr.images.align(
-        eis_int, x, y,
-        aia_int, x, y,
-        cores=cores,
-        return_offset=True)
-    y_offset, x_offset, cc = offset
-    offsets.append([y_offset, x_offset, 0])
-    cross_correlations.append(cc)
-    ranges.append(None)
-    titles.append('shift')
+    start_time = datetime.datetime.now()
 
-    cli.print_now('> aligning rasters')
-    x_set = cr.tools.OffsetSet((-10, 10), number=11)
-    y_set = cr.tools.OffsetSet((-5, 5), number=11)
-    a_set = cr.tools.OffsetSet((-3, 3), step=.2)
-    x, y, offset = cr.rasters.align(
-        eis_int, x, y, dates_rel_hours,
-        raster_builder,
-        x_set=x_set, y_set=y_set, a_set=a_set,
-        cores=cores,
-        return_offset=True)
-    y_offset, x_offset, a_offset, cc = offset
-    offsets.append([y_offset, x_offset, a_offset])
-    cross_correlations.append(cc)
-    ranges.append((y_set, x_set, a_set))
-    titles.append('rotshift')
-
-    cli.print_now('> align slit positions')
-    x_set = cr.tools.OffsetSet((-20, 20), number=21)
-    y_set = cr.tools.OffsetSet((-20, 20), number=21)
-    a_set = cr.tools.OffsetSet((0, 0), number=1)
-    x, y, offset = cr.slits.align(
-        eis_int, x, y, dates_rel_hours,
-        raster_builder,
-        x_set=x_set, y_set=y_set, a_set=a_set,
-        cores=cores, mp_mode='track',
-        return_offset=True)
-    offset, cc = offset
-    offsets.append(offset)
-    cross_correlations.append(cc)
-    ranges.append((y_set, x_set, a_set))
-    titles.append('slitshift')
-
-    cli.print_now('> aligning rasters')
-    x_set = cr.tools.OffsetSet((-5, 5), number=11)
-    y_set = cr.tools.OffsetSet((-5, 5), number=11)
-    a_set = cr.tools.OffsetSet((-2, 2), step=.2)
-    x, y, offset = cr.rasters.align(
-        eis_int, x, y, dates_rel_hours,
-        raster_builder,
-        x_set=x_set, y_set=y_set, a_set=a_set,
-        cores=cores,
-        return_offset=True)
-    y_offset, x_offset, a_offset, cc = offset
-    offsets.append([y_offset, x_offset, a_offset])
-    cross_correlations.append(cc)
-    ranges.append((y_set, x_set, a_set))
-    titles.append('rotshift')
+    for step in registration_steps['steps']:
+        registration_type = step.pop('type')
+        if registration_type == 'shift':
+            result = shift_step(x, y, eis_int, aia_int, cores=cores, **step)
+        elif registration_type == 'rotshift':
+            result = rotshift_step(x, y, dates_rel_hours,
+                eis_int, raster_builder,
+                cores=cores, **step)
+        elif registration_type == 'slitshift':
+            result = slitshift_step(x, y, dates_rel_hours,
+                eis_int, raster_builder,
+                cores=cores, **step)
+        else:
+            raise ValueError('unknown registration step')
+        title, offset_set, offset, cc, x, y = result
+        titles.append(title)
+        offset_sets.append(offset_set)
+        offsets.append(offset)
+        cross_correlations.append(cc)
 
     stop_time = datetime.datetime.now()
 
@@ -365,7 +391,7 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
             verif_dir, eis_name, aia_band,
             eis_data.pointing, trans_pointing, optimal_pointing,
             raster_builder, eis_int,
-            titles, ranges, offsets, cross_correlations,
+            titles, offset_sets, offsets, cross_correlations,
             start_time, stop_time,
             )
         verif.save_all()
