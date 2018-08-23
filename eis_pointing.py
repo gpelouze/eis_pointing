@@ -88,7 +88,7 @@ def prepare_data(l1_files, l0_files):
             instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
-def export_windata(wd_files, l1_files, aia_band):
+def export_windata(wd_files, l1_files, wl0):
     ''' Run export_windata.pro to save windata objects from a list of l1_files.
 
     Parameters
@@ -103,14 +103,14 @@ def export_windata(wd_files, l1_files, aia_band):
         wd = [f[0] for f in fp]
         l1 = [f[1] for f in fp]
         prep = idl.SSWFunction(
-            'export_windata', arguments=[wd, l1, aia_band],
+            'export_windata', arguments=[wd, l1, wl0],
             instruments='eis', ssw_path=SSW)
         out, err = prep.run()
 
-def compute_eis_aia_emission(eis_aia_emission_files, wd_files, aia_band):
+def compute_eis_aia_emission(eis_aia_emission_files, wd_files, *args):
     for eis_aia_emission_file, wd_file in zip(eis_aia_emission_files, wd_files):
         windata = idl.IDLStructure(wd_file)
-        emission = eis_aia_emission.compute(windata, aia_band)
+        emission = eis_aia_emission.compute(windata, *args)
         hdulist = emission.to_hdulist()
         hdulist.writeto(eis_aia_emission_file)
 
@@ -127,20 +127,24 @@ if __name__ == '__main__':
     args = cli.get_setup()
 
     # get filenames paths
-    filenames = files.Files(args.filename, args.aia_band)
+    filenames = files.Files(args.filename)
     filenames.mk_output_dirs()
+
+    aia_band = 193
+    eis_wl0 = 195.119
+    eis_wl_width = 0.15
 
     # make targets
     make(filenames['l0'], filenames['eis_name'], get_fits)
     make(filenames['l1'], filenames['l0'], prepare_data)
-    make(filenames['windata'], filenames['l1'], export_windata, args.aia_band)
+    make(filenames['windata'], filenames['l1'], export_windata, eis_wl0)
     make(filenames['eis_aia_emission'], filenames['windata'],
-        compute_eis_aia_emission, args.aia_band)
+        compute_eis_aia_emission, eis_wl0, eis_wl_width)
     make(filenames['pointing'], filenames['eis_aia_emission'],
         compute_pointing,
         verif_dir=filenames['pointing_verification'],
         aia_cache=filenames['synthetic_raster_cache'],
         eis_name=filenames['eis_name'],
         cores=args.cores,
-        aia_band=args.aia_band,
+        aia_band=aia_band,
         steps_file=args.steps_file)

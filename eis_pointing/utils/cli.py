@@ -26,11 +26,6 @@ def get_setup():
         help=("the name of the level 0 EIS file, "
             "eg. 'eis_l0_20100815_192002'"))
     parser.add_argument(
-        'aia_band',
-        type=str,
-        help=("the AIA band to use for the coalignment, "
-            "eg. '193' -- CURRENTLY IGNORED, defaults to 193"))
-    parser.add_argument(
         '-s', '--steps-file',
         type=str,
         help=('Path to a yaml file containing the registration steps.'))

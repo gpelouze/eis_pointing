@@ -16,10 +16,7 @@ class Files(dict):
         'eis_name': ('', 'eis_l0', ''),
         }
 
-    def __init__(self, eis_l0_filename, aia_band):
-        self.aia_band = aia_band
-        self.aia_suffix = '_{}.sav'.format(self.aia_band)
-
+    def __init__(self, eis_l0_filename):
         filenames = {}
 
         # EIS files in the Hinode directory structure

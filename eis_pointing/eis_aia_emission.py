@@ -6,7 +6,7 @@ import numpy as np
 
 from .utils import eis
 
-def compute(windata, aia_band):
+def compute(windata, wl0, wl_width):
     ''' Compute synthetic emission for a given AIA band using EIS data.
 
     Parameters
@@ -14,17 +14,17 @@ def compute(windata, aia_band):
     windata : idl.IDLStructure
         Windata structure containing the wavelength windows necessary to compute
         the AIA emission.
-    aia_band : str
-        The AIA band for which to compute the synthetic intensity.
-        WARNING: currently, this parameter is ignored and the function sums
-        the intensity over all wavelengths.
+    wl0 : float
+        The central wavelength of the integration domain, in Ångström.
+    wl_width : float
+        The width wavelength of the integration domain, in Ångström.
     '''
     raster = windata.int.copy()
     missing_places = (raster == windata.missing)
     raster[missing_places] = np.nan
     raster /= windata.exposure_time.reshape(-1, 1)
-    # select Fe XII 195.119
-    wvl_min, wvl_max = 194.961, 195.261 # FIXME
+    wvl_min = wl0 - wl_width
+    wvl_max = wl0 + wl_width
     i_min = np.argmin(np.abs(windata.wvl - wvl_min))
     i_max = np.argmin(np.abs(windata.wvl - wvl_max))
     raster = raster[:, :, i_min:i_max+1]
