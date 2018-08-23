@@ -7,7 +7,8 @@ import numpy as np
 
 from ..utils import num
 
-def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None):
+def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None,
+        cc_function='explicit', cc_boundary='drop', sub_px=True):
     ''' 2D version of align.align_cubes '''
 
     # get grid info
@@ -34,8 +35,8 @@ def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None):
 
     (y_offset, x_offset), maxcc = align_images.align.track(
         ref_cube, cube,
-        sub_px=True, missing=np.nan,
-        cc_function='explicit', cc_boundary='drop', cores=cores,
+        sub_px=sub_px, missing=np.nan,
+        cc_function=cc_function, cc_boundary=cc_function, cores=cores,
         )
     y_offset *= cdelty
     x_offset *= cdeltx
