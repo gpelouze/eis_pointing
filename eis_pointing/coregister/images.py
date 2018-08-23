@@ -7,8 +7,7 @@ import numpy as np
 
 from ..utils import num
 
-def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None,
-        return_offset=False):
+def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None):
     ''' 2D version of align.align_cubes '''
 
     # get grid info
@@ -58,7 +57,4 @@ def align(cube, x, y, ref_cube, ref_x, ref_y, cores=None,
     new_y = y + offset_y
     new_x = x + offset_x
 
-    if return_offset:
-        return new_x, new_y, offset
-    else:
-        return new_x, new_y
+    return new_x, new_y, offset

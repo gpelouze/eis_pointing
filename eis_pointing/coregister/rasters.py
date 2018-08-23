@@ -80,7 +80,6 @@ def compute_cc(raster, x, y, t, ref_raster_builder,
 
 def track(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        return_full_cc=False, sub_px=True,
         **kwargs):
     ''' Find the optimal position of a raster with a synthetic raster that is
     generated for each translation and rotation.
@@ -90,9 +89,6 @@ def track(raster, x, y, t, ref_raster_builder,
     raster : 2D ndarray
     ref_raster_builder : aia_raster.SyntheticRasterBuilder
     x_set, y_set, a_set : tools.OffsetSet (default: None)
-    return_full_cc : bool (default: False)
-        If True, return the full cross-correlation array.
-        If False, only return the maximum cross-correlation.
     **kwargs : passed to compute_cc.
 
     Returns
@@ -101,9 +97,7 @@ def track(raster, x, y, t, ref_raster_builder,
         An array containing the optimal (y, x, angle) offset between the input
         array and image
     cc : float or 3D array
-        Depending on the value of return_full_cc, either the value of the
-        cross-correlation at the optimal offset, or the full cross-correlation
-        array.
+        The full cross-correlation array.
     '''
 
     cc = compute_cc(
@@ -116,14 +110,11 @@ def track(raster, x, y, t, ref_raster_builder,
     # transform offset to arcsecs and degrees
     offset = tools.convert_offsets(offset, [y_set, x_set, a_set])
 
-    if return_full_cc:
-        return offset, cc
-    else:
-        return offset, np.nanmax(cc)
+    return offset, cc
 
 def align(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        cores=None, return_offset=False):
+        cores=None):
     ''' Align a raster in translation and rotation. '''
 
     # explore raster with rotation
@@ -131,7 +122,7 @@ def align(raster, x, y, t, ref_raster_builder,
     offset, cc = track(
         raster, x, y, t, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set,
-        return_full_cc=True, cores=cores)
+        cores=cores)
     cc = np.array(cc)
     offset = np.array(offset)
 
@@ -143,8 +134,5 @@ def align(raster, x, y, t, ref_raster_builder,
         center=tools.transform_center(x, y),
         )
 
-    if return_offset:
-        offset = list(offset) + [cc]
-        return new_x, new_y, offset
-    else:
-        return new_x, new_y
+    offset = list(offset) + [cc]
+    return new_x, new_y, offset

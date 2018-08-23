@@ -96,7 +96,7 @@ def compute_cc(arr, x, y, t, ref_raster_builder,
 
 def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
         x_set=None, y_set=None, a_set=None,
-        return_full_cc=False, sub_px=True, **kwargs):
+        **kwargs):
     ''' Find the optimal position of a 1D array within a 2D image using
     compute_cc().
 
@@ -111,9 +111,6 @@ def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
         'missing', and thus discarded before computing the cross correlation.
         If set to None, don't handle missing values.
         If your missing values are 'None', you’re out of luck.
-    return_full_cc : bool (default: False)
-        If True, return the full cross-correlation array.
-        If False, only return the maximum cross-correlation.
     **kwargs : passed to compute_cc()
 
     Returns
@@ -122,9 +119,7 @@ def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
         An array containing the optimal (y, x, angle) offset between the input
         array and image
     cc : float or 3D array
-        Depending on the value of return_full_cc, either the value of the
-        cross-correlation at the optimal offset, or the full cross-correlation
-        array.
+        The full cross-correlation array.
     '''
 
     if missing is not None:
@@ -140,10 +135,7 @@ def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
 
     if np.all(arr.mask):
         offset = np.zeros(3) * np.nan
-        if return_full_cc:
-            cc = np.zeros((y_set.number, x_set.number, a_set.number)) * np.nan
-        else:
-            cc = np.nan
+        cc = np.zeros((y_set.number, x_set.number, a_set.number)) * np.nan
         return offset, cc
 
     cc = compute_cc(arr, x, y, t, ref_raster_builder,
@@ -152,14 +144,10 @@ def track_slit(ref_raster_builder, arr, x, y, t, missing=np.nan,
     offset = num.get_max_location(cc)
     offset = tools.convert_offsets(offset, [y_set, x_set, a_set])
 
-    if return_full_cc:
-        return offset, cc
-    else:
-        return offset, np.nanmax(cc)
+    return offset, cc
 
 def track_raster(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        return_full_cc=False, sub_px=True,
         cores=None, mp_mode='track', **kwargs):
     '''
     mp_mode : 'track' or 'cc'
@@ -169,7 +157,6 @@ def track_raster(raster, x, y, t, ref_raster_builder,
     '''
     cc = []
     offset = []
-    return_full_cc = True
 
     track_cores, cc_cores = None, None
     if mp_mode == 'track':
@@ -182,7 +169,7 @@ def track_raster(raster, x, y, t, ref_raster_builder,
     track_worker = functools.partial(
         track_slit, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set,
-        missing=None, return_full_cc=return_full_cc, cores=cc_cores,
+        missing=None, cores=cc_cores,
         **kwargs)
 
     if track_cores is None:
@@ -203,15 +190,11 @@ def track_raster(raster, x, y, t, ref_raster_builder,
     cc = np.array(cc)
     offset = np.array(offset)
 
-    if return_full_cc:
-        return offset, cc
-    else:
-        return offset, np.nanmax(cc)
+    return offset, cc
 
 def align(raster, x, y, t, ref_raster_builder,
         x_set=None, y_set=None, a_set=None,
-        cores=None, mp_mode='track',
-        return_offset=False):
+        cores=None, mp_mode='track'):
     ''' Align raster individual slit positions using a reference image '''
 
     # explore raster for all slit positions, with rotation
@@ -219,7 +202,6 @@ def align(raster, x, y, t, ref_raster_builder,
     offset, cc = track_raster(
         raster, x, y, t, ref_raster_builder,
         x_set=x_set, y_set=y_set, a_set=a_set,
-        return_full_cc=True,
         cores=cores)
 
     # The additionnal shift in world units wrt the ref image, as determined by
@@ -272,7 +254,4 @@ def align(raster, x, y, t, ref_raster_builder,
     new_x = new_xy[:, :, 0] # (ny, nx)
     new_y = new_xy[:, :, 1] # (ny, nx)
 
-    if return_offset:
-        return new_x, new_y, [offset, cc]
-    else:
-        return new_x, new_y
+    return new_x, new_y, [offset, cc]
