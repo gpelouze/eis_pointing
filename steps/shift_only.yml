@@ -1,0 +1,9 @@
+description: >
+  Search for a translation in X and Y, with sub-pixel precision,
+  and using the `explicit` method from the `align_images` package,
+  with `drop` boundary condition.
+steps:
+  - type: shift
+    cc_function: explicit
+    cc_boundary: drop
+    sub_px: True

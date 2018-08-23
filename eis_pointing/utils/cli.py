@@ -28,7 +28,7 @@ def get_setup():
     parser.add_argument(
         '-s', '--steps-file',
         type=str,
-        help=('Path to a yaml file containing the registration steps.'))
+        help=('path to a yaml file containing the registration steps.'))
     parser.add_argument(
         '-c', '--cores',
         type=int,

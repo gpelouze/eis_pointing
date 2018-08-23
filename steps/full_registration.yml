@@ -1,0 +1,26 @@
+description: >
+  Four consecutive steps. First apply a coarse translation correction, then a
+  global translation and a rotation, then correct the translation for
+  individual positions, and finally apply a second global translation and
+  rotation correction.
+steps:
+  - type: shift
+    cc_function: explicit
+    cc_boundary: drop
+    sub_px: True
+  - type: rotshift
+    # search for X shifts between -10 and 10 arcsec, computing the
+    # cross-correlation at 11 positions
+    x_set: OffsetSet((-10, 10), number=11)
+    y_set: OffsetSet((-5, 5), number=11)
+    # search for angles between -3 and 3°, with a step of 0.2°
+    a_set: OffsetSet((-3, 3), step=.2)
+  - type: slitshift
+    x_set: OffsetSet((-20, 20), number=21)
+    y_set: OffsetSet((-20, 20), number=21)
+    a_set: OffsetSet((0, 0), number=1)
+    mp_mode: track
+  - type: rotshift
+    x_set: OffsetSet((-5, 5), number=11)
+    y_set: OffsetSet((-5, 5), number=11)
+    a_set: OffsetSet((-2, 2), step=.2)

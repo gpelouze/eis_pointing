@@ -8,7 +8,7 @@ Everything is performed by `eis_pointing.py`, which should be run from the
 command line:
 
 ~~~
-usage: eis_pointing.py [-h] [-c CORES] filename aia_band
+usage: eis_pointing.py [-h] [-s STEPS_FILE] [-c CORES] filename
 
 Coregister EIS cube.
 
@@ -18,14 +18,17 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
+  -s STEPS_FILE, --steps-file STEPS_FILE
+                        path to a yaml file containing the registration steps.
   -c CORES, --cores CORES
                         maximum number of cores used for parallelisation
 ~~~
 
-**Example:**
+**Examples:**
 
 ~~~
-./eis_pointing.py -c16 eis_l0_20140810_042212 193
+./eis_pointing.py -c16 eis_l0_20140810_042212
+./eis_pointing.py --steps-file steps/shift_only.yml eis_l0_20140810_042212
 ~~~
 
 **Note:** in order for all components to work correctly, `eis_pointing.py` must
@@ -43,6 +46,18 @@ be run from the directory it is stored in, as shown in the example.
 [pySitools2]: http://medocias.github.io/pySitools2_1.0/
 [align_images]: https://git.ias.u-psud.fr/gpelouze/align_images
 
+## Customisation
+
+The registration steps used to find the optimal pointing can be customised in a
+yaml file, and passed to `eis_pointing.py` using the parameter `--steps-file`.
+The file should have a top-level key named `step`, containing a list of
+registration steps. Each step must specify at least a `type`, chosen between
+`shift`, `rotshift`, and `slitshift`.
+
+See files in `steps/` for examples.
+
+When no file is specified, the default behaviour is the same as using
+`steps/full_registration.yml`.
 
 ## Code structure
 
