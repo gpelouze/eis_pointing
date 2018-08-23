@@ -188,6 +188,8 @@ class OptPointingVerif(object):
 
     def plot_slit_align(self):
         ''' plot offsets and slit coordinates '''
+        if len(self.offsets) < 4:
+            return
         pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, 'slit_align.pdf'))
         x_color = '#2ca02c'
         y_color = '#1f77b4'
