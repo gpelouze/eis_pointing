@@ -330,12 +330,16 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
     eis_int = eis_data.data
 
     cli.print_now('> get AIA data') # -------------------------------------------------
-    # (verified against the original method used in align.py)
+    single_aia_frame = registration_steps.get('single_aia_frame', False)
+    if single_aia_frame:
+        single_aia_frame = num.dt_average(np.min(dates_abs), np.max(dates_abs))
+        aia_cache = None
     raster_builder = aia_raster.SyntheticRasterBuilder(
         dates=[np.min(dates_abs), np.max(dates_abs)],
         date_ref=date_ref,
         channel=aia_band,
         file_cache=aia_cache,
+        single_frame=single_aia_frame,
         )
     raster_builder.get_data()
 

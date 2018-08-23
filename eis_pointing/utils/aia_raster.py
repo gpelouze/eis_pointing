@@ -62,8 +62,17 @@ class SyntheticRasterBuilder(object):
     ''' Class to build synthetic AIA rasters. Data are retrieved from Medoc
     using SITools, and cached when necessary. '''
 
-    def __init__(self, file_cache=None, **kwargs):
+    def __init__(self, file_cache=None, single_frame=False, **kwargs):
         ''' Create a new synthetic raster builder.
+
+        Parameters
+        ==========
+        file_cache : str or None (default: None)
+            Path to the file. If None, don't use a file cache.
+        single_frame : bool or datetime (default: False)
+            Wheter to always data from the same AIA image.
+            If True, use the image at the center of the query results.
+            If datetime, use the image which is the closest to that date.
 
         **kwargs can contain different sets of parameters, which trigger the
         use of different init functions:
@@ -82,6 +91,17 @@ class SyntheticRasterBuilder(object):
                 kwargs['qr'], kwargs['qr_meta'], kwargs['qr_coord'])
         else:
             raise ValueError('Invalid **kwargs')
+
+        self.single_frame = single_frame
+        if self.single_frame:
+            date_obs = self.qr_meta['date__obs']
+            if self.single_frame is True:
+                frame_id = len(date_obs) // 2
+            else:
+                frame_id = np.argmin(np.abs(date_obs - self.single_frame))
+            self.qr = self.qr[[frame_id]]
+            self.qr_meta = {k: v[[frame_id]] for k, v in self.qr_meta.items()}
+            self.qr_coord = self.qr_coord[[frame_id]]
 
     def _init_from_dates(self, dates, date_ref, channel):
         ''' Create a new synthetic raster builder for a given time window.
@@ -322,11 +342,23 @@ class SyntheticRasterBuilder(object):
 
         if regular_grid:
             # perform a linear interpolation in both x, y, and t
-            raster = si.interpn(
-                (cube_x, cube_y, cube_t),
-                cube.T,
-                (raster_x.flat, raster_y.flat, raster_t.flat),
-                bounds_error=False)
+
+            if self.single_frame:
+                # For some unknown reason, raster is filled with nan when there
+                # is a single frame in the builder. Fix this with a 2D interp.
+                raster = si.interpn(
+                    (cube_x, cube_y),
+                    cube.T[:, :, 0],
+                    (raster_x.flat, raster_y.flat),
+                    bounds_error=False)
+
+            else:
+                raster = si.interpn(
+                    (cube_x, cube_y, cube_t),
+                    cube.T,
+                    (raster_x.flat, raster_y.flat, raster_t.flat),
+                    bounds_error=False)
+
             raster = raster.reshape(raster_x.shape)
 
         else:

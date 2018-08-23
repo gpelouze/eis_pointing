@@ -54,6 +54,10 @@ The file should have a top-level key named `step`, containing a list of
 registration steps. Each step must specify at least a `type`, chosen between
 `shift`, `rotshift`, and `slitshift`.
 
+By default, EIS data are coaligned with synthetic AIA raster. To coalign with a
+single AIA image, add the top-level key `single_aia_frame: True`. In this case,
+the reference AIA image chosen in the middle of the EIS raster.
+
 See files in `steps/` for examples.
 
 When no file is specified, the default behaviour is the same as using

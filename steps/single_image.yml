@@ -1,0 +1,8 @@
+description: >
+  Very simple registration relatively to a single AIA frame.
+single_aia_frame: True
+steps:
+  - type: shift
+    cc_function: explicit
+    cc_boundary: drop
+    sub_px: True

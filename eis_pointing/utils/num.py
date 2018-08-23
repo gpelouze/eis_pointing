@@ -277,3 +277,8 @@ def seconds_to_timedelta(arr):
     td = arr.astype(object)
     td[mask] = to_timedelta(td[mask])
     return td
+
+def dt_average(a, b):
+    ''' Average function that is friendly with datetime formats that only
+    support substraction. '''
+    return a + (b - a) / 2
