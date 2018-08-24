@@ -43,7 +43,7 @@ The tool can also be used from within a Python script, using
 `eis_pointing.compute()`.
 
 ~~~
-eis_pinting.compute(*filename, cores=4, io='io', steps_file=None)
+eis_pointing.compute(*filename, cores=4, io='io', steps_file=None)
     Perform all computation steps to determine the optimal EIS pointing.
 
     Parameters
