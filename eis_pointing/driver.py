@@ -25,7 +25,7 @@ except KeyError:
 IDL_CHUNKS = 25
 
 IDL_CWD = os.path.dirname(os.path.realpath(__file__))
-IDL_CWD = os.path.join(IDL_CWD, 'eis_pointing')
+IDL_CWD = os.path.join(IDL_CWD)
 
 def make(targets, sources, method, *args, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
