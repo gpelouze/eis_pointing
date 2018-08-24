@@ -125,7 +125,7 @@ class OptPointingVerif(object):
         self.plot_intensity(self.optimal_pointing, name='optimal_pointing')
         self.plot_slit_align()
 
-    def _get_interpolated_maps(self, pointing):
+    def _get_interpolated_maps(self, pointing, save_to=None):
         ''' get maps and interpolate them on an evenly-spaced grid '''
 
         x, y = pointing.x, pointing.y
@@ -143,6 +143,19 @@ class OptPointingVerif(object):
         eis_int_interp = eis_int_interp(xi_interp)
         aia_int_interp = si.LinearNDInterpolator(points, aia_int.flatten())
         aia_int_interp = aia_int_interp(xi_interp)
+
+        if save_to:
+            np.savez(
+                save_to,
+                x=x,
+                y=y,
+                eis_int=self.eis_int,
+                aia_int=aia_int,
+                x_interp=x_interp,
+                y_interp=y_interp,
+                eis_int_interp=eis_int_interp,
+                aia_int_interp=aia_int_interp,
+                )
 
         return x_interp, y_interp, eis_int_interp, aia_int_interp
 
@@ -163,13 +176,19 @@ class OptPointingVerif(object):
     def plot_intensity(self, pointing, name=None):
         ''' plot intensity maps of EIS and AIA rasters '''
         if name:
-            title = 'intensity_{}.pdf'.format(name)
+            title = 'intensity_{}'.format(name)
         else:
-            title = 'intensity.pdf'
-        pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, title))
-        x, y, eis_int, aia_int = self._get_interpolated_maps(pointing)
+            title = 'intensity'
+
+        # build and save normalized intensity maps
+        file_base = os.path.join(self.verif_dir, title)
+        x, y, eis_int, aia_int = self._get_interpolated_maps(
+            pointing, save_to=file_base+'.npz')
         eis_int, aia_int, norm = self._normalize_intensity(
             eis_int, aia_int, mpl.colors.LogNorm)
+
+        # plot maps
+        pp = backend_pdf.PdfPages(file_base+'.pdf')
         intensity_plots = (
             (eis_int, 'EIS'),
             (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
