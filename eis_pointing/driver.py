@@ -137,13 +137,21 @@ def compute_pointing(pointing_files, emission_files, **kwargs):
         pointing.to_hdulist().writeto(pointing_file)
 
 
-if __name__ == '__main__':
+def compute(*filename, cores=4, io='io', steps_file=None):
+    ''' Perform all computation steps to determine the optimal EIS pointing.
 
-    # get configuration from command line
-    args = cli.get_setup()
-
-    # get filenames paths
-    filenames = files.ManyFiles(args.filename, args.io)
+    Parameters
+    ==========
+    filename : list
+        The names of the level 0 EIS files, eg. 'eis_l0_20100815_192002'.
+    cores : int (default: 4)
+        Maximum number of cores used for parallelisation.
+    io : str (default: 'io')
+        Directory where output files are written.
+    steps_file : str or None (default: None)
+        Path to a yaml file containing the registration steps.
+    '''
+    filenames = files.ManyFiles(filename, io)
     filenames.mk_output_dirs()
 
     aia_band = 193
@@ -161,6 +169,6 @@ if __name__ == '__main__':
         verif_dir=filenames['pointing_verification'],
         aia_cache=filenames['synthetic_raster_cache'],
         eis_name=filenames['eis_name'],
-        cores=args.cores,
+        cores=cores,
         aia_band=aia_band,
-        steps_file=args.steps_file)
+        steps_file=steps_file)

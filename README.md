@@ -4,13 +4,14 @@ Tools to correct the pointing of Hinode/EIS. 🛰
 
 ## Usage
 
-Everything is performed by `eis_pointing.py`, which should be run from the
-command line:
+### From the command line
+
+This tool can be run from the command line by calling
+`compute_eis_pointing.py`:
 
 ~~~
-usage: eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES]
-                       filename [filename ...]
-
+usage: compute_eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES]
+                               filename [filename ...]
 
 Determine the pointing of Hinode/EIS.
 
@@ -31,9 +32,38 @@ optional arguments:
 
 **Examples:**
 
+~~~bash
+./compute_eis_pointing.py -c16 eis_l0_20140810_042212
+./compute_eis_pointing.py --steps-file steps/shift_only.yml eis_l0_20140810_042212
 ~~~
-./eis_pointing.py -c16 eis_l0_20140810_042212
-./eis_pointing.py --steps-file steps/shift_only.yml eis_l0_20140810_042212
+
+### As a Python module
+
+The tool can also be used from within a Python script, using
+`eis_pointing.compute()`.
+
+~~~
+eis_pinting.compute(*filename, cores=4, io='io', steps_file=None)
+    Perform all computation steps to determine the optimal EIS pointing.
+
+    Parameters
+    ==========
+    filename : list
+        The names of the level 0 EIS files, eg. 'eis_l0_20100815_192002'.
+    cores : int (default: 4)
+        Maximum number of cores used for parallelisation.
+    io : str (default: 'io')
+        Directory where output files are written.
+    steps_file : str or None (default: None)
+        Path to a yaml file containing the registration steps.
+~~~
+
+**Examples:**
+
+~~~python
+import eis_pointing
+eis_pointing.compute('eis_l0_20140810_042212', cores=16)
+eis_pointing.compute('eis_l0_20140810_042212', steps_file='steps/shift_only.yml')
 ~~~
 
 ## Installation
@@ -43,7 +73,7 @@ optional arguments:
    matplotlib, dateutil, pyyaml, [pySitools2], and [align_images].
 3. If needed, install Solar Soft making sure that EIS is in the instrument list. If SSW
    is not installed in `/usr/local/ssw`, set the environment variable `SSW` to
-   the appropriate path before running `eis_pointing.py`.
+   the appropriate path.
 
 [pySitools2]: http://medocias.github.io/pySitools2_1.0/
 [align_images]: https://git.ias.u-psud.fr/gpelouze/align_images
@@ -51,10 +81,10 @@ optional arguments:
 ## Customisation
 
 The registration steps used to find the optimal pointing can be customised in a
-yaml file, and passed to `eis_pointing.py` using the parameter `--steps-file`.
-The file should have a top-level key named `step`, containing a list of
-registration steps. Each step must specify at least a `type`, chosen between
-`shift`, `rotshift`, and `slitshift`.
+yaml file, and passed to `eis_pointing` using the “step file” parameter (see
+examples above). The file should have a top-level key named `step`, containing
+a list of registration steps. Each step must specify at least a `type`, chosen
+between `shift`, `rotshift`, and `slitshift`.
 
 By default, EIS data are coaligned with synthetic AIA raster. To coalign with a
 single AIA image, add the top-level key `single_aia_frame: True`. In this case,
@@ -69,8 +99,10 @@ When no file is specified, the default behaviour is the same as using
 
 ### Pipeline
 
-`eis_pointing.py` performs all the following steps to determine the optimal
-pointing data from EIS level 0 files.
+All the steps required to determine the optimal pointing data from EIS level 0
+files are defined in `driver.py`. The appropriate functions are called by
+`compute_eis_pointing.py` when using the tool from the CLI, and by
+`eis_pointing.compute()` when using it as a Python module.
 
 1. `prep.pro` generates `eis_l1_<date>.fits` from `eis_l0_<date>.fits`. Both
    files are found in the EIS data files and directory structure described in
