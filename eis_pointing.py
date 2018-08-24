@@ -56,7 +56,9 @@ def make(targets, sources, method, *args, **kwargs):
         cli.print_now(
             'running', method.__name__,
             'to make', n_targets, 'target'+'s'*(n_targets-1))
-        return_value = method(targets, sources, *args, **kwargs)
+        return_value = method(
+            targets_to_build, sources_to_build,
+            *args, **kwargs)
         for target in targets:
             if not os.path.exists(target):
                 raise RuntimeError('could not build {}'.format(target))
