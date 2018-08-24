@@ -7,7 +7,8 @@ from . import eis
 
 class Files(dict):
     data_types = {
-        # key: path (directory only), prefix, extension
+        # key: local_path (directory only, relative to io_dir), prefix, extension
+        # final path: {io_dir}/{local_path}/{prefix}_yyymmdd_hhmmss.{extension}
         'windata': ('windata', 'windata', '.sav'),
         'eis_aia_emission': ('eis_aia_emission', 'eis_aia_emission', '.fits'),
         'pointing': ('pointing', 'pointing', '.fits'),
@@ -33,7 +34,7 @@ class Files(dict):
         # local files
         for key, (path, name, extension) in Files.data_types.items():
             if path:
-                path = os.path.join(io_dir, path)
+                path = os.path.join(self.io_dir, path)
             path = os.path.join(path, '')
             filenames[key] = self._transform_filenames(
                 eis_l0_filename, name,
@@ -44,7 +45,8 @@ class Files(dict):
     def mk_output_dirs(self):
         if not os.path.exists(self.io_dir):
             os.makedirs(self.io_dir)
-        for (d, _, _) in Files.data_types.values():
+        for f in self.values():
+            d = os.path.dirname(f)
             if d and not os.path.exists(d):
                 os.makedirs(d)
 
