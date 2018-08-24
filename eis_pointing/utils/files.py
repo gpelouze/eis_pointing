@@ -65,3 +65,17 @@ class Files(dict):
         fname = re.sub('eis_l0_', '{}', fname_l0)
         fname = prefix + fname.format(datatype) + suffix
         return fname
+
+class ManyFiles(object):
+    def __init__(self, eis_l0_filenames, io_dir):
+        self.files = [Files(f, io_dir) for f in eis_l0_filenames]
+
+    def __getitem__(self, k):
+        return [f[k] for f in self.files]
+
+    def get(self, i):
+        return self.files[i]
+
+    def mk_output_dirs(self):
+        for f in self.files:
+            f.mk_output_dirs()

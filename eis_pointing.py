@@ -122,9 +122,18 @@ def compute_eis_aia_emission(eis_aia_emission_files, wd_files, *args):
         hdulist.writeto(eis_aia_emission_file)
 
 def compute_pointing(pointing_files, emission_files, **kwargs):
-    for (pointing_file, emission_file) in zip(pointing_files, emission_files):
+    verif_dirs = kwargs.pop('verif_dir')
+    aia_caches = kwargs.pop('aia_cache')
+    eis_names = kwargs.pop('eis_name')
+    for (pointing_file, emission_file, verif_dir, aia_cache, eis_name) \
+    in zip(pointing_files, emission_files, verif_dirs, aia_caches, eis_names):
         eis_data = eis.EISData.from_hdulist(fits.open(emission_file))
-        pointing = eis_aia_registration.optimal_pointing(eis_data, **kwargs)
+        pointing = eis_aia_registration.optimal_pointing(
+            eis_data,
+            verif_dir=verif_dir,
+            aia_cache=aia_cache,
+            eis_name=eis_name,
+            **kwargs)
         pointing.to_hdulist().writeto(pointing_file)
 
 
@@ -134,7 +143,7 @@ if __name__ == '__main__':
     args = cli.get_setup()
 
     # get filenames paths
-    filenames = files.Files(args.filename, args.io)
+    filenames = files.ManyFiles(args.filename, args.io)
     filenames.mk_output_dirs()
 
     aia_band = 193

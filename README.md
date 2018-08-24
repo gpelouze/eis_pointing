@@ -8,12 +8,14 @@ Everything is performed by `eis_pointing.py`, which should be run from the
 command line:
 
 ~~~
-usage: eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES] filename
+usage: eis_pointing.py [-h] [-s STEPS_FILE] [--io IO] [-c CORES]
+                       filename [filename ...]
+
 
 Determine the pointing of Hinode/EIS.
 
 positional arguments:
-  filename              The name of the level 0 EIS file, eg.
+  filename              The names of the level 0 EIS files, eg.
                         'eis_l0_20100815_192002'.
 
 optional arguments:

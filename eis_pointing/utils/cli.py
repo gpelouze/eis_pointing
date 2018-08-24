@@ -23,7 +23,8 @@ def get_setup():
     parser.add_argument(
         'filename',
         type=str,
-        help=("The name of the level 0 EIS file, "
+        nargs='+',
+        help=("The names of the level 0 EIS files, "
             "eg. 'eis_l0_20100815_192002'."))
     parser.add_argument(
         '-s', '--steps-file',
