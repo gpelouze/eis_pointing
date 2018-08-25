@@ -137,7 +137,7 @@ def compute_pointing(pointing_files, emission_files, **kwargs):
         pointing.to_hdulist().writeto(pointing_file)
 
 
-def compute(*filename, cores=4, io='io', steps_file=None):
+def compute(*filename, cores=4, io='io', steps_file=None, cache_aia_data=False):
     ''' Perform all computation steps to determine the optimal EIS pointing.
 
     Parameters
@@ -150,6 +150,9 @@ def compute(*filename, cores=4, io='io', steps_file=None):
         Directory where output files are written.
     steps_file : str or None (default: None)
         Path to a yaml file containing the registration steps.
+    cache_aia_data : bool (default: False)
+        Cache the AIA data to a file. This uses a lot of storage, but speeds
+        things up when the same raster is aligned for the second time.
     '''
     filenames = files.ManyFiles(filename, io)
     filenames.mk_output_dirs()
@@ -157,6 +160,11 @@ def compute(*filename, cores=4, io='io', steps_file=None):
     aia_band = 193
     eis_wl0 = 195.119
     eis_wl_width = 0.15
+
+    if cache_aia_data:
+        aia_cache = filenames['synthetic_raster_cache']
+    else:
+        aia_cache = None
 
     # make targets
     make(filenames['l0'], filenames['eis_name'], get_fits)
@@ -167,7 +175,7 @@ def compute(*filename, cores=4, io='io', steps_file=None):
     make(filenames['pointing'], filenames['eis_aia_emission'],
         compute_pointing,
         verif_dir=filenames['pointing_verification'],
-        aia_cache=filenames['synthetic_raster_cache'],
+        aia_cache=aia_cache,
         eis_name=filenames['eis_name'],
         cores=cores,
         aia_band=aia_band,

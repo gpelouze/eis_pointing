@@ -28,10 +28,17 @@ if __name__ == '__main__':
         type=int,
         default=4,
         help='Maximum number of cores used for parallelisation, default: 4.')
+    parser.add_argument(
+        '--cache-aia-data',
+        action='store_true',
+        help='Cache the AIA data to a file. This uses a lot of storage, '
+             'but speeds things up when the same raster is aligned for '
+             'the second time.')
     args = parser.parse_args()
 
     eis_pointing.compute(
         *args.filename,
         cores=args.cores,
         io=args.io,
-        steps_file=args.steps_file)
+        steps_file=args.steps_file,
+        cache_aia_data=args.cache_aia_data)

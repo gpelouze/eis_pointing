@@ -28,6 +28,9 @@ optional arguments:
   -c CORES, --cores CORES
                         Maximum number of cores used for parallelisation,
                         default: 4.
+  --cache-aia-data      Cache the AIA data to a file. This uses a lot of
+                        storage, but speeds things up when the same raster is
+                        aligned for the second time.
 ~~~
 
 **Examples:**
@@ -43,7 +46,7 @@ The tool can also be used from within a Python script, using
 `eis_pointing.compute()`.
 
 ~~~
-eis_pointing.compute(*filename, cores=4, io='io', steps_file=None)
+compute(*filename, cores=4, io='io', steps_file=None, cache_aia_data=False)
     Perform all computation steps to determine the optimal EIS pointing.
 
     Parameters
@@ -56,6 +59,9 @@ eis_pointing.compute(*filename, cores=4, io='io', steps_file=None)
         Directory where output files are written.
     steps_file : str or None (default: None)
         Path to a yaml file containing the registration steps.
+    cache_aia_data : bool (default: False)
+        Cache the AIA data to a file. This uses a lot of storage, but speeds
+        things up when the same raster is aligned for the second time.
 ~~~
 
 **Examples:**
