@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import functools
 import os
 import re
 
@@ -69,6 +70,7 @@ class Files(dict):
 class ManyFiles(object):
     def __init__(self, eis_l0_filenames, io_dir):
         self.files = [Files(f, io_dir) for f in eis_l0_filenames]
+        self.io_dir = io_dir
 
     def __getitem__(self, k):
         return [f[k] for f in self.files]
@@ -79,3 +81,23 @@ class ManyFiles(object):
     def mk_output_dirs(self):
         for f in self.files:
             f.mk_output_dirs()
+
+    def as_dict(self):
+        keys = [list(f.keys()) for f in self.files]
+        keys = functools.reduce(lambda x, y: x+y ,keys)
+        return {k: [f[k] for f in self.files] for k in keys}
+
+    def keys(self):
+        return self.as_dict().keys()
+
+    def values(self):
+        return self.as_dict().values()
+
+    def items(self):
+        return self.as_dict().items()
+
+    def __iter__(self):
+        return self.files.__iter__()
+
+    def __len__(self):
+        return self.files.__len__()
