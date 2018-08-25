@@ -46,19 +46,19 @@ The tool can also be used from within a Python script, using
 `eis_pointing.compute()`.
 
 ~~~
-compute(*filename, cores=4, io='io', steps_file=None, cache_aia_data=False)
+compute(*filename, steps_file=None, io='io', cores=4, cache_aia_data=False)
     Perform all computation steps to determine the optimal EIS pointing.
 
     Parameters
     ==========
     filename : list
         The names of the level 0 EIS files, eg. 'eis_l0_20100815_192002'.
-    cores : int (default: 4)
-        Maximum number of cores used for parallelisation.
-    io : str (default: 'io')
-        Directory where output files are written.
     steps_file : str or None (default: None)
         Path to a yaml file containing the registration steps.
+    io : str (default: 'io')
+        Directory where output files are written.
+    cores : int (default: 4)
+        Maximum number of cores used for parallelisation.
     cache_aia_data : bool (default: False)
         Cache the AIA data to a file. This uses a lot of storage, but speeds
         things up when the same raster is aligned for the second time.

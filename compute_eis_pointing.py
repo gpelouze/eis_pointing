@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     eis_pointing.compute(
         *args.filename,
-        cores=args.cores,
-        io=args.io,
         steps_file=args.steps_file,
+        io=args.io,
+        cores=args.cores,
         cache_aia_data=args.cache_aia_data)
