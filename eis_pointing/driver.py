@@ -161,10 +161,9 @@ def compute(*filename, steps_file=None, io='io', cores=4, cache_aia_data=False):
     eis_wl0 = 195.119
     eis_wl_width = 0.15
 
-    if cache_aia_data:
-        aia_cache = filenames['synthetic_raster_cache']
-    else:
-        aia_cache = None
+    aia_cache = filenames['synthetic_raster_cache']
+    if not cache_aia_data:
+        aia_cache = [None] * len(aia_cache)
 
     # make targets
     make(filenames['l0'], filenames['eis_name'], get_fits)
