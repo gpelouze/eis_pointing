@@ -286,6 +286,8 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
         Object containing the EIS intensity and pointing.
     cores : int or None
         Number of cores to use for multiprocessing, if any.
+    aia_band : int
+        The reference AIA channel. Eg. 193.
     verif_dir : str
         Path to the directory where to save verification plots.
     aia_cache : str
