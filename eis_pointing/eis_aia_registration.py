@@ -22,18 +22,35 @@ from . import coregister as cr
 class OptPointingVerif(object):
     def __init__(self,
             verif_dir, eis_name, aia_band,
-            original_pointing, trans_pointing, optimal_pointing,
+            pointings,
             raster_builder, eis_int,
             titles, ranges, offsets, cross_correlations,
             start_time, stop_time,
             ):
+        ''' Build and save pointing verification data
+
+        Parameters
+        ==========
+        verif_dir : str
+        eis_name : str
+        aia_band : int
+        pointings : list of eis.EISPointing
+        raster_builder : aia_raster.SyntheticRasterBuilder
+        eis_int : 2D array
+        titles : list of str
+        ranges : list
+            Items can be either 3-tuples of cr.tools.OffsetSet, or None.
+        offsets : list
+            Items can be either 3-tuples of floats, or arrays of shape (n, 3).
+        cross_correlations : list of arrays
+        start_time : datetime.datetime
+        stop_time : datetime.datetime
+        '''
 
         self.verif_dir = verif_dir
         self.eis_name = eis_name
         self.aia_band = aia_band
-        self.original_pointing = original_pointing
-        self.trans_pointing = trans_pointing
-        self.optimal_pointing = optimal_pointing
+        self.pointings = pointings
         self.raster_builder = raster_builder
         self.eis_int = eis_int
         self.titles = titles
@@ -57,7 +74,7 @@ class OptPointingVerif(object):
             os.path.join(self.verif_dir, 'offsets.npz'),
             offset=np.array(self.offsets, dtype=object),
             cc=np.array(self.cross_correlations, dtype=object),
-            x=self.optimal_pointing.x, y=self.optimal_pointing.y,
+            x=self.pointings[-1].x, y=self.pointings[-1].y,
             )
 
     def save_summary(self):
@@ -121,8 +138,14 @@ class OptPointingVerif(object):
 
     def save_figures(self):
         ''' plot alignment results '''
-        self.plot_intensity(self.trans_pointing, name='translation_only')
-        self.plot_intensity(self.optimal_pointing, name='optimal_pointing')
+        n_pointings = len(self.pointings)
+        for i, pointing in enumerate(self.pointings):
+            name = 'pointing_{}'.format(i)
+            if i == 0:
+                name += '_original'
+            elif i == n_pointings - 1:
+                name += '_optimal'
+            self.plot_intensity(pointing, name=name)
         self.plot_slit_align()
 
     def _get_interpolated_maps(self, pointing, save_to=None):
@@ -226,8 +249,8 @@ class OptPointingVerif(object):
         plt.savefig(pp)
         # new coordinates
         plots = [
-            ('X', self.optimal_pointing.x, self.original_pointing.x),
-            ('Y', self.optimal_pointing.y, self.original_pointing.y),
+            ('X', self.pointings[-1].x, self.pointings[0].x),
+            ('Y', self.pointings[-1].y, self.pointings[0].y),
             ]
         for name, aligned, original in plots:
             plt.clf()
@@ -379,6 +402,7 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
     titles = []
     offset_sets = []
     offsets = []
+    pointings = [eis_data.pointing]
     cross_correlations = []
 
     start_time = datetime.datetime.now()
@@ -404,24 +428,19 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
         titles.append(title)
         offset_sets.append(offset_set)
         offsets.append(offset)
+        pointings.append(eis.EISPointing(x, y, eis_data.pointing.t, date_ref))
         cross_correlations.append(cc)
 
     stop_time = datetime.datetime.now()
 
-    # 'trans' pointing is the original EIS pointing corrected for translation
-    trans_y = eis_data.pointing.y - offsets[0][0]
-    trans_x = eis_data.pointing.x - offsets[0][1]
-    trans_pointing = eis.EISPointing(trans_x, trans_y, eis_data.pointing.t, date_ref)
-    optimal_pointing = eis.EISPointing(x, y, eis_data.pointing.t, date_ref)
-
     if verif_dir:
         verif = OptPointingVerif(
             verif_dir, eis_name, aia_band,
-            eis_data.pointing, trans_pointing, optimal_pointing,
+            pointings,
             raster_builder, eis_int,
             titles, offset_sets, offsets, cross_correlations,
             start_time, stop_time,
             )
         verif.save_all()
 
-    return optimal_pointing
+    return pointings[-1]
