@@ -154,7 +154,7 @@ class SyntheticRasterBuilder(object):
         frames = set()
         for t in filter_t:
             frames.add(np.argmin(np.abs(qr_t - t)))
-        frames = sorted(frames)
+        frames = tuple(sorted(frames))
 
         filtered_qr = self.qr[frames]
         filtered_meta = {k: v[frames] for k, v in self.qr_meta.items()}

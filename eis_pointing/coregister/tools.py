@@ -102,7 +102,7 @@ def create_margin(arr, margin, axis):
     cut_sup = [s_all] * arr.ndim
     cut_inf[axis] = s_inf
     cut_sup[axis] = s_sup
-    d = arr[cut_sup] - arr[cut_inf]
+    d = arr[tuple(cut_sup)] - arr[tuple(cut_inf)]
     try:
         d = num.almost_identical(d, 0.05)
     except ValueError:
