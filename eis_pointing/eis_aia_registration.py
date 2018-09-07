@@ -138,14 +138,17 @@ class OptPointingVerif(object):
 
     def save_figures(self):
         ''' plot alignment results '''
+
+        diff_norm = mpl.colors.Normalize(vmin=-3, vmax=+3)
+
         n_pointings = len(self.pointings)
         for i, pointing in enumerate(self.pointings):
-            name = 'pointing_{}'.format(i)
+            name = 'step_{}'.format(i)
             if i == 0:
                 name += '_original'
             elif i == n_pointings - 1:
                 name += '_optimal'
-            self.plot_intensity(pointing, name=name)
+            self.plot_intensity(pointing, name=name, diff_norm=diff_norm)
         self.plot_slit_align()
 
     def _get_interpolated_maps(self, pointing, save_to=None):
@@ -196,22 +199,27 @@ class OptPointingVerif(object):
         norm = norm(vmin=np.nanmin((a, b)), vmax=np.nanmax((a, b)))
         return a, b, norm
 
-    def plot_intensity(self, pointing, name=None):
+    def plot_intensity(self, pointing, name='', diff_norm=None):
         ''' plot intensity maps of EIS and AIA rasters '''
         if name:
-            title = 'intensity_{}'.format(name)
-        else:
-            title = 'intensity'
+            name = '_' + name
+        filenames = {
+            'npy': 'intensity_data{}.npz',
+            'intensity': 'intensity_maps{}.pdf',
+            'diff': 'intensity_diff{}.pdf',
+            }
+        filenames = {k: os.path.join(self.verif_dir, v.format(name))
+            for k, v in filenames.items()}
 
         # build and save normalized intensity maps
-        file_base = os.path.join(self.verif_dir, title)
         x, y, eis_int, aia_int = self._get_interpolated_maps(
-            pointing, save_to=file_base+'.npz')
+            pointing, save_to=filenames['npy'])
+
         eis_int, aia_int, norm = self._normalize_intensity(
             eis_int, aia_int, mpl.colors.LogNorm)
 
         # plot maps
-        pp = backend_pdf.PdfPages(file_base+'.pdf')
+        pp = backend_pdf.PdfPages(filenames['intensity'])
         intensity_plots = (
             (eis_int, 'EIS'),
             (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
@@ -227,6 +235,24 @@ class OptPointingVerif(object):
             plt.ylabel('Y [arcsec]')
             plt.savefig(pp)
         pp.close()
+
+        # plot difference
+        diff = eis_int - aia_int
+        msd = np.nanmean(diff**2)
+        if not diff_norm:
+            vlim = np.nanmax(np.abs(diff))
+            diff_norm = mpl.colors.Normalize(vmin=-vlim, vmax=+vlim)
+        plt.clf()
+        im = plots.plot_map(
+            plt.gca(),
+            diff, coordinates=[x, y],
+            cmap='gray', norm=diff_norm)
+        cb = plt.colorbar(im)
+        cb.set_label('normalised EIS − AIA')
+        plt.title('MSD = {:.2g}'.format(msd))
+        plt.xlabel('X [arcsec]')
+        plt.ylabel('Y [arcsec]')
+        plt.savefig(filenames['diff'])
 
     def plot_slit_align(self):
         ''' plot offsets and slit coordinates '''
