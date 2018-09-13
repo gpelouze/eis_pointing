@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from itertools import compress
+import datetime
 import os
+import re
 
 from astropy import time
 import numpy as np
@@ -77,7 +79,8 @@ def sdotime_to_utc(sdo_time):
     return t_tai.utc.datetime
 
 
-def query_aia_data(dates, wl0, nb_res_max=-1, keywords='default'):
+def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
+                   increase_date_range=True, keywords='default'):
     ''' Get a list of AIA data within given time limits.
 
     Parameters
@@ -90,6 +93,11 @@ def query_aia_data(dates, wl0, nb_res_max=-1, keywords='default'):
         Maximum number of results to return.
         If set to -1, do not limit the number of results (?). This behaviour
         depends on sitools2.clients.sdo_client_medoc.media_search().
+    cadence : str (default: '1 min')
+        Data cadence, passed to sitools2.clients.sdo_client_medoc.media_search.
+    increase_date_range : bool (default: True)
+        If True, increase interval of dates from (d1, d2) to
+        (d1 - cadence, d2 + cadence)
     keywords : list of str, str, or None (default: 'default')
         The metadata keywords to return for each AIA frame.
         Either a list of str containing AIA metadata keywords (which can be
@@ -112,11 +120,28 @@ def query_aia_data(dates, wl0, nb_res_max=-1, keywords='default'):
         result.
     '''
 
+    if increase_date_range:
+        reg = re.compile(
+            '(?:(?P<days>\d+)\s*(?:d|day|days))?\s*'
+            '(?:(?P<hours>\d+)\s*(?:h|hour|hours))?\s*'
+            '(?:(?P<minutes>\d+)\s*(?:m|min|minute|minutes))?\s*'
+            '(?:(?P<seconds>\d+)\s*(?:s|second|seconds))?\s*'
+            )
+        m = reg.match(cadence)
+        if m:
+            m = m.groupdict()
+            m = {k: float(v) if v else 0 for k, v in m.items()}
+            cadence_timedelta = datetime.timedelta(**m)
+        else:
+            raise ValueError('could not parse cadence')
+        d1, d2 = dates
+        dates = [d1 - cadence_timedelta, d2 + cadence_timedelta]
+
     # Get a list of all AIA data
     aia_frames = md.media_search(
         dates=dates,
         waves=[wl0],
-        cadence=['12s'],
+        cadence=[cadence],
         nb_res_max=nb_res_max,
         )
     msg = 'Reached AIA maximum results number.'
