@@ -59,8 +59,9 @@ class EISPointing(object):
 
         # find missing slit times to interpolate their coordinates
         bad_times = (windata.exposure_time == 0)
-        msg = 'Interpolated {} missing slit times.'.format(bad_times.sum())
-        warnings.warn(msg)
+        if np.any(bad_times):
+            msg = 'Interpolated {} missing slit times.'.format(bad_times.sum())
+            warnings.warn(msg)
 
         t_ref = dateutil.parser.parse(windata.hdr['date_obs'][0])
         x = num.replace_missing_values(windata.solar_x, bad_times)
