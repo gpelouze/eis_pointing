@@ -27,16 +27,17 @@ def compute(windata, wl0, wl_width):
         windata.missing = -100
         windata.exposure_time = np.array([float(et)
             for et in windata.exposure_time])
+        exposure_time = windata.exposure_time
         t_ref = num.parse_date(windata.hdr['date_obs'][0])
         t_abs = num.parse_date(windata.time_ccsds)
         windata.time = num.total_seconds(t_abs - t_ref)
     else:
-        windata.exposure_time = windata.exposure_time.reshape(-1, 1)
+        exposure_time = windata.exposure_time.reshape(-1, 1)
 
     intensity = windata.int.copy()
     missing_places = (intensity == windata.missing)
     intensity[missing_places] = np.nan
-    intensity /= windata.exposure_time
+    intensity /= exposure_time
 
     if not slot:
         wvl_min = wl0 - wl_width
