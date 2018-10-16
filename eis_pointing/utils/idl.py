@@ -32,6 +32,12 @@ class IDLFunction(object):
             'idl {self.filename_base}.bat'
             ],
         'bat': [
+            'catch, error',
+            'if error ne 0 then begin',
+            '  print, "An error occured."',
+            '  exit, status=1',
+            'endif',
+            'catch, /cancel',
             '{self.function}{self.arguments_str}',
             'exit',
             ],
