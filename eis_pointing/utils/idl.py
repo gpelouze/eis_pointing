@@ -27,14 +27,14 @@ class IDLFunction(object):
     '''
 
     _files_templates = {
-        'csh': '''
-            #!/bin/csh -f
-            idl {self.filename_base}.bat
-            ''',
-        'bat': '''
-            {self.function}{self.arguments_str}
-            exit
-            ''',
+        'csh': [
+            '#!/bin/csh -f',
+            'idl {self.filename_base}.bat'
+            ],
+        'bat': [
+            '{self.function}{self.arguments_str}',
+            'exit',
+            ],
         }
 
     def __init__(self, function, arguments=[], cwd='.'):
@@ -55,7 +55,7 @@ class IDLFunction(object):
         # interpolate templates
         self.files = {ext: (
                 self.filename_base + '.' + ext,
-                template.format(**locals()),
+                '\n'.join(template).format(**locals()),
                 )
             for ext, template in self._files_templates.items()}
 
@@ -135,19 +135,13 @@ class SSWFunction(IDLFunction):
         The SSW instruments to load.
     '''
 
-    _files_templates = {
-        'csh': '''
-            #!/bin/csh -f
-            setenv SSW {self.ssw_path}
-            setenv SSW_INSTR {self.instruments}
-            source $SSW/gen/setup/setup.ssw
-            sswidl {self.filename_base}.bat
-            ''',
-        'bat': '''
-            {self.function}{self.arguments_str}
-            exit
-            ''',
-        }
+    IDLFunction._files_templates['csh'] = [
+        '#!/bin/csh -f',
+        'setenv SSW {self.ssw_path}',
+        'setenv SSW_INSTR {self.instruments}',
+        'source $SSW/gen/setup/setup.ssw',
+        'sswidl {self.filename_base}.bat',
+        ]
 
     def __init__(self, *args,
             instruments='nox', ssw_path='/usr/local/ssw',
