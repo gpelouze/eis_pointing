@@ -2,6 +2,9 @@
 
 pro export_windata, wd_files, l0_files, wl0
 
+catch, error
+if error ne 0 then exit, status=1
+
 nfiles = n_elements(l0_files)
 for i=0, nfiles-1 do begin
   wd_file = wd_files[i]

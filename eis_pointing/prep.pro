@@ -24,8 +24,10 @@ end
 
 pro prep, files
 
-  n_files = size(files, /dimensions)
-  n_files = n_files[0]
+  catch, error
+  if error ne 0 then exit, status=1
+
+  n_files = n_elements(files)
 
   for i=0, n_files-1 do begin
     fits_path = files[i]
