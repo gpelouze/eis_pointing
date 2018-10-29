@@ -373,7 +373,7 @@ def get_fits(eis_file, custom_dest=None, force_download=False, silent=True):
             os.path.exists(fits_save_path_unzip)) or force_download:
         if not silent:
             print('Downloading {} to {}'.format(fits_url, fits_save_path))
-        response = requests.get(fits_url, stream=True)
+        response = requests.get(fits_url, stream=True, timeout=60)
         if not response.ok:
             m = 'Could not get {}'.format(fits_url)
             raise ValueError(m)
