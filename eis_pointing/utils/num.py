@@ -68,6 +68,48 @@ def affine_transform(x, y, transform_matrix, center=(0, 0)):
 
     return transformed_x, transformed_y
 
+def roll_nd(a, shifts=None):
+    ''' Roll a n-D array along its axes.
+
+    (A wrapper around np.roll, for n-D array.)
+
+    Parameters
+    ==========
+    array : array_like
+        Input array.
+    shifts : tuple of ints or None (default: None)
+        Tuple containing, for each axis, the number of places by which elements
+        are shifted along this axes. If a value of this tuple is None, elements
+        of the corresponding axis are shifted by half the axis length.
+
+        If None, shift all axes by half their respective lengths.
+
+    Returns
+    =======
+    output : ndarray
+        Array with the same shape as the input array.
+
+    Example
+    =======
+    >>> a = np.arange(9).reshape((3,3))
+    >>> a
+    array([[0, 1, 2],
+           [3, 4, 5],
+           [6, 7, 8]])
+    >>> roll_2d(a, (1, 1))
+    array([[8, 6, 7],
+           [2, 0, 1],
+           [5, 3, 4]])
+
+    '''
+    if shifts is None:
+        shifts = np.array(a.shape) // 2
+    for i, s in enumerate(shifts):
+        if s is None:
+            s = a.shape[i] // 2
+        a = np.roll(a, s, axis=i)
+    return a
+
 def almost_identical(arr, threshold, **kwargs):
     ''' Reduce an array of almost identical values to a single one.
 
