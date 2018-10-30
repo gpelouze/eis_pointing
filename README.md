@@ -164,3 +164,7 @@ files are defined in `driver.py`. The appropriate functions are called by
 - `num`: tools that extend numpy or scipy.
 - `plots`: help generate plots at step 4.
 - `sun`: generic solar computations.
+
+## License
+
+This package is released under a MIT open source licence. See `LICENSE.txt`.
