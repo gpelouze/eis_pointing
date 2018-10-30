@@ -1,0 +1,7 @@
+astropy>=3.0
+python-dateutil>=2.7
+matplotlib>=2.0
+numpy>=1.15
+requests>=2.19
+scipy>=1.0
+PyYAML>=3.13
