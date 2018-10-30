@@ -59,14 +59,15 @@ class OptPointingVerif(object):
         self.cross_correlations = cross_correlations
         self.start_time = start_time
         self.stop_time = stop_time
+        self.rms = []
 
         if not os.path.exists(self.verif_dir):
             os.makedirs(self.verif_dir)
 
     def save_all(self):
         self.save_npz()
-        self.save_summary()
         self.save_figures()
+        self.save_summary()
 
     def save_npz(self):
         ''' Save cc, offset, and new coordinates '''
@@ -79,13 +80,17 @@ class OptPointingVerif(object):
 
     def save_summary(self):
         ''' Print and save yaml summary '''
+        if not self.rms:
+            self.rms = [None] * (len(titles) + 1)
         run_specs = [
             ('verif_dir', self.verif_dir),
+            ('initial_rms', self.rms[0]),
             ('steps', self._repr_steps(
                 self.titles,
                 self.ranges,
                 self.offsets,
                 self.cross_correlations,
+                self.rms[1:],
                 indent=2)),
             ('exec_time', self.stop_time - self.start_time),
             ]
@@ -118,10 +123,11 @@ class OptPointingVerif(object):
         string = ''.join([indent * ' ', name, sep, str(value), end])
         return string
 
-    def _repr_steps(self, titles, all_ranges, offsets, ccs, indent=0):
+    def _repr_steps(self, titles, all_ranges, offsets, ccs, rmss, indent=0):
         indent += 2
         ret = '\n'
-        for name, ranges, offset, cc in zip(titles, all_ranges, offsets, ccs):
+        for name, ranges, offset, cc, rms in \
+                zip(titles, all_ranges, offsets, ccs, rmss):
             ret += ' '*(indent-2) + '- '
             ret += self._repr_kv('name', name, indent=0)
             if ranges:
@@ -132,6 +138,8 @@ class OptPointingVerif(object):
             if len(offset) <= 3:
                 ret += self._repr_kv('offset', self._repr_offset(offset), indent=indent)
                 ret += self._repr_kv('cc_max', np.nanmax(cc), indent=indent)
+            if rms is not None:
+                ret += self._repr_kv('rms', rms, indent=indent)
         if ret[-1] == '\n':
             ret = ret[:-1]
         return ret
@@ -238,7 +246,8 @@ class OptPointingVerif(object):
 
         # plot difference
         diff = eis_int - aia_int
-        msd = np.nanmean(diff**2)
+        rms = np.sqrt(np.nanmean(diff**2))
+        self.rms.append(rms)
         if not diff_norm:
             vlim = np.nanmax(np.abs(diff))
             diff_norm = mpl.colors.Normalize(vmin=-vlim, vmax=+vlim)
@@ -249,7 +258,7 @@ class OptPointingVerif(object):
             cmap='gray', norm=diff_norm)
         cb = plt.colorbar(im)
         cb.set_label('normalised EIS − AIA')
-        plt.title('MSD = {:.2g}'.format(msd))
+        plt.title('RMS = {:.2g}'.format(rms))
         plt.xlabel('X [arcsec]')
         plt.ylabel('Y [arcsec]')
         plt.savefig(filenames['diff'])
