@@ -25,7 +25,7 @@ optional arguments:
   -s STEPS_FILE, --steps-file STEPS_FILE
                         Path to a yaml file containing the registration steps.
   --io IO               Directory where output files are written,
-						default: ./io.
+                        default: ./io.
   -c CORES, --cores CORES
                         Maximum number of cores used for parallelisation,
                         default: 4.
@@ -84,7 +84,7 @@ installed in `/usr/local/ssw`, set the environment variable `$SSW` to the
 appropriate path.
 
 If SolarSoft is not installed, steps 1 to 3 of the [pipeline](#pipeline) will
-have to be performed manually..
+have to be performed manually.
 
 ### Option 1: Installation using `pip`
 
