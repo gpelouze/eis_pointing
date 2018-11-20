@@ -107,7 +107,7 @@ class OptPointingVerif(object):
         return offset
 
     def _repr_kv(self, name, value, indent=0, sep=': ', end='\n'):
-        form = '{:#.3g}'
+        form = '{:#.6g}'
         if isinstance(value, (list, tuple)):
             value = [form.format(v)
                 if np.issubdtype(type(v), (float, np.inexact))
