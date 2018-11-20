@@ -137,6 +137,7 @@ class SSWFunction(IDLFunction):
 
     IDLFunction._files_templates['csh'] = [
         '#!/bin/csh -f',
+        'setenv IDL_PATH \+$IDL_DIR/lib:\+$IDL_PATH',
         'setenv SSW {self.ssw_path}',
         'setenv SSW_INSTR {self.instruments}',
         'source $SSW/gen/setup/setup.ssw',
