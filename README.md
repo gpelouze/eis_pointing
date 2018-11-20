@@ -88,17 +88,15 @@ have to be performed manually.
 
 ### Option 1: Installation using `pip`
 
-1. Install [pySitools2].
-2. Run `pip install eis_pointing`
+Run `pip install eis_pointing`.
 
 ### Option 2: Manual installation
 
 1. Clone this repository.
 2. Satisfy the dependencies in `requirements.txt`, eg. by running
    `pip install -r requirements.txt`.
-3. Install [pySitools2].
-4. Place `compute_eis_pointing.py` in your `$PATH`, and
-   `eis_pointing` in your `$PYTHONPATH`.
+3. Place `compute_eis_pointing.py` in your `$PATH`, and
+   `eis_pointing/` in your `$PYTHONPATH`.
 
 [SolarSoft]: http://www.ascl.net/1208.013
 [pySitools2]: http://medocias.github.io/pySitools2_1.0/
