@@ -13,7 +13,7 @@ entry_points = {
 
 setuptools.setup(
     name='eis_pointing',
-    version='2018.11.20',
+    version='2018.12.04',
     author='Gabriel Pelouze',
     author_email='gabriel.pelouze@ias.u-psud.fr',
     description='Tools to correct the pointing of Hinode/EIS',
