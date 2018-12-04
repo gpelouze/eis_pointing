@@ -157,6 +157,11 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
 
     aia_frames = np.array(aia_frames)
 
+    if len(aia_frames) == 0:
+        msg = 'No AIA {} images found between {} and {}'
+        msg = msg.format(wl0, dates[0], dates[1])
+        raise ValueError(msg)
+
     # retrieve metadata
     if keywords is None:
         metadata = {}
