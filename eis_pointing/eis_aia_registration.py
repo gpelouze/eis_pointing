@@ -382,11 +382,6 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
              'a_set': cr.tools.OffsetSet((0.0, 0.0), number=1),
              'mp_mode': 'track'
              },
-            {'type': 'rotshift',
-             'x_set': cr.tools.OffsetSet((-5.0, 5.0), number=11),
-             'y_set': cr.tools.OffsetSet((-5.0, 5.0), number=11),
-             'a_set': cr.tools.OffsetSet((-2.0, 2.0), step=0.2),
-             },
             ]}
 
     cli.print_now('> build relative and absolute date arrays') # ----------------------

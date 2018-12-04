@@ -1,7 +1,7 @@
 description: >
   Search for a translation in X and Y, with sub-pixel precision,
-  and using the `explicit` method from the `align_images` package,
-  with `drop` boundary condition.
+  and using explicit cross-correlation computation (ie. no FFT),
+  and dropping values from non-overlaping regions.
 steps:
   - type: shift
     cc_function: explicit

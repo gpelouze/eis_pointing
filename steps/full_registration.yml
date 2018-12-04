@@ -1,8 +1,10 @@
 description: >
-  Four consecutive steps. First apply a coarse translation correction, then a
-  global translation and a rotation, then correct the translation for
-  individual positions, and finally apply a second global translation and
-  rotation correction.
+  Three consecutive steps.
+  1) Correct an average translation (up to the raster field of view).
+  2) Simultaneously correct a rotation (between -3 and 3°), and a smaller
+     translation (-10 to 10 arcsec along X, and -5 to 5 arcsec along Y).
+  3) correct the translation for individual slit positions
+     (-20, 20 arcsec along each axis).
 steps:
   - type: shift
     cc_function: explicit
@@ -20,7 +22,3 @@ steps:
     y_set: OffsetSet((-20, 20), number=21)
     a_set: OffsetSet((0, 0), number=1)
     mp_mode: track
-  - type: rotshift
-    x_set: OffsetSet((-5, 5), number=11)
-    y_set: OffsetSet((-5, 5), number=11)
-    a_set: OffsetSet((-2, 2), step=.2)
