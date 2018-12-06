@@ -215,8 +215,8 @@ class SyntheticRasterBuilder(object):
 
         x = self.qr_coord.x
         y = self.qr_coord.y
-        dx = num.almost_identical(x[:, 1:] - x[:, :-1], 1e-10)
-        dy = num.almost_identical(y[:, 1:] - y[:, :-1], 1e-10)
+        dx = num.almost_identical(x[:, 1:] - x[:, :-1], 1e-4)
+        dy = num.almost_identical(y[:, 1:] - y[:, :-1], 1e-4)
         px_size = np.array([dy, dx])
         try:
             fwhm_y, fwhm_x = fwhm
