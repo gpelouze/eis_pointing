@@ -254,7 +254,7 @@ class SyntheticRasterBuilder(object):
         data_y = self.qr_coord.y
         ax = np.where((xmin <= data_x) & (data_x <= xmax))[1]
         ay = np.where((ymin <= data_y) & (data_y <= ymax))[1]
-        if not ax or not ay:
+        if ax.size == 0 or ay.size == 0:
             print('ax:', ax)
             print('ay:', ay)
             raise ValueError("AIA and EIS fields of view don't intersect")
