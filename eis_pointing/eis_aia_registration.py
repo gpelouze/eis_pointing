@@ -9,6 +9,7 @@ import scipy.interpolate as si
 
 import matplotlib as mpl
 from matplotlib.backends import backend_pdf
+mpl.use('pdf')
 import matplotlib.pyplot as plt
 
 from .utils import aia_raster
