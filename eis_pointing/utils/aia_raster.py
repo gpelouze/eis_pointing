@@ -255,9 +255,33 @@ class SyntheticRasterBuilder(object):
         ax = np.where((xmin <= data_x) & (data_x <= xmax))[1]
         ay = np.where((ymin <= data_y) & (data_y <= ymax))[1]
         if ax.size == 0 or ay.size == 0:
-            print('ax:', ax)
-            print('ay:', ay)
-            raise ValueError("AIA and EIS fields of view don't intersect")
+            print("AIA and EIS fields of view don't intersect.")
+            # try to determine why
+            eis_xcen = (xmax + xmin) / 2
+            eis_ycen = (ymax + ymin) / 2
+            eis_r = np.sqrt(eis_xcen**2 + eis_ycen**2)
+            if eis_r > 1230:
+                print('This is probably because of faulty EIS coordinates:')
+                print('EIS FOV X: ({:.2f}, {:.2f}) arcsec'.format(xmin, xmax))
+                print('EIS FOV Y: ({:.2f}, {:.2f}) arcsec'.format(ymin, ymax))
+            else:
+                print('This is probably because of bad AIA pointing:')
+                for i, (x, y) in enumerate(zip(data_x, data_y)):
+                    aia_xcen = x[len(x)//2]
+                    aia_ycen = y[len(y)//2]
+                    aia_r = np.sqrt(aia_xcen**2 + aia_ycen**2)
+                    found_bad_aia_frame = False
+                    if aia_r > 100:
+                        found_bad_aia_frame = True
+                        print('> Bad pointing at frame {}:'.format(i))
+                        msg = '  AIA center ({:.2f}, {:.2f}) arcsec'
+                        msg = msg.format(i, aia_xcen, aia_ycen)
+                        print(msg)
+                        print('  URL:', self.qr[i].url)
+                    if not found_bad_aia_frame:
+                        print('the bad frames cannot be identified.')
+            raise ValueError("AIA and EIS fields of view don't intersect. "
+                             "See above for more details.")
         ax = np.array(sorted(set(ax)))
         ay = np.array(sorted(set(ay)))
         assert np.all(ax[1:] - ax[:-1] == 1)
