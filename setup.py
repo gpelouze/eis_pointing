@@ -11,6 +11,10 @@ entry_points = {
         ]
     }
 
+package_data = {
+    '': ['*.pro'],
+    }
+
 setuptools.setup(
     name='eis_pointing',
     version='2018.12.19',
@@ -21,6 +25,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/gpelouze/eis_pointing',
     entry_points=entry_points,
+    package_data=package_data,
     packages=setuptools.find_packages(),
     python_requires='>=3.5',
     install_requires=requirements,
