@@ -27,6 +27,19 @@ IDL_CHUNKS = 25
 IDL_CWD = os.path.dirname(os.path.realpath(__file__))
 IDL_CWD = os.path.join(IDL_CWD)
 
+def to_build(targets, sources):
+    str_to_list = lambda s: [s] if isinstance(s, (str, np.character)) else s
+    targets = str_to_list(targets)
+    sources = str_to_list(sources)
+    if len(targets) != len(sources):
+        raise ValueError('targets and sources have different lengths')
+    to_build = list(filter(
+        lambda f: not os.path.exists(f[0]),
+        zip(targets, sources)))
+    targets_to_build = [tb[0] for tb in to_build]
+    sources_to_build = [tb[1] for tb in to_build]
+    return targets_to_build, sources_to_build
+
 def make(targets, sources, method, *args, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
 
@@ -41,16 +54,7 @@ def make(targets, sources, method, *args, **kwargs):
     *args, **kwargs :
         Passed to `method`.
     '''
-    str_to_list = lambda s: [s] if isinstance(s, (str, np.character)) else s
-    targets = str_to_list(targets)
-    sources = str_to_list(sources)
-    if len(targets) != len(sources):
-        raise ValueError('targets and sources have different lengths')
-    to_build = list(filter(
-        lambda f: not os.path.exists(f[0]),
-        zip(targets, sources)))
-    targets_to_build = [tb[0] for tb in to_build]
-    sources_to_build = [tb[1] for tb in to_build]
+    targets_to_build, sources_to_build = to_build(targets, sources)
     if targets_to_build:
         n_targets = len(targets_to_build)
         cli.print_now(
