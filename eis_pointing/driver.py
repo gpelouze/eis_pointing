@@ -27,20 +27,28 @@ IDL_CHUNKS = 25
 IDL_CWD = os.path.dirname(os.path.realpath(__file__))
 IDL_CWD = os.path.join(IDL_CWD)
 
-def to_build(targets, sources):
+def to_build(targets, sources, secondary_targets=None):
     str_to_list = lambda s: [s] if isinstance(s, (str, np.character)) else s
     targets = str_to_list(targets)
     sources = str_to_list(sources)
     if len(targets) != len(sources):
         raise ValueError('targets and sources have different lengths')
-    to_build = list(filter(
-        lambda f: not os.path.exists(f[0]),
-        zip(targets, sources)))
-    targets_to_build = [tb[0] for tb in to_build]
-    sources_to_build = [tb[1] for tb in to_build]
-    return targets_to_build, sources_to_build
+    to_build = [not os.path.exists(t) for t in targets]
+    targets_to_build = list(np.array(targets)[to_build])
+    sources_to_build = list(np.array(sources)[to_build])
+    if secondary_targets is not None:
+        secondary_targets_to_build = []
+        for t in secondary_targets:
+            if len(t) != len(targets):
+                raise ValueError('targets have different lengths')
+            t = str_to_list(t)
+            t_to_build = list(np.array(t)[to_build])
+            secondary_targets_to_build.append(t_to_build)
+    else:
+        secondary_targets_to_build = None
+    return targets_to_build, sources_to_build, secondary_targets_to_build
 
-def make(targets, sources, method, *args, **kwargs):
+def make(targets, sources, method, *args, secondary_targets=None, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
 
     Parameters
@@ -54,12 +62,15 @@ def make(targets, sources, method, *args, **kwargs):
     *args, **kwargs :
         Passed to `method`.
     '''
-    targets_to_build, sources_to_build = to_build(targets, sources)
+    targets_to_build, sources_to_build, secondary_targets_to_build = to_build(
+        targets, sources, secondary_targets=secondary_targets)
     if targets_to_build:
         n_targets = len(targets_to_build)
         cli.print_now(
             'running', method.__name__,
             'to make', n_targets, 'target'+'s'*bool(n_targets-1))
+        if secondary_targets_to_build is not None:
+            kwargs['secondary_targets'] = secondary_targets_to_build
         return_value = method(
             targets_to_build, sources_to_build,
             *args, **kwargs)
@@ -125,10 +136,9 @@ def compute_eis_aia_emission(eis_aia_emission_files, wd_files, *args):
         hdulist = emission.to_hdulist()
         hdulist.writeto(eis_aia_emission_file)
 
-def compute_pointing(pointing_files, emission_files, **kwargs):
-    verif_dirs = kwargs.pop('verif_dir')
-    aia_caches = kwargs.pop('aia_cache')
-    eis_names = kwargs.pop('eis_name')
+def compute_pointing(pointing_files, emission_files,
+                     secondary_targets, **kwargs):
+    verif_dirs, aia_caches, eis_names = secondary_targets
     for (pointing_file, emission_file, verif_dir, aia_cache, eis_name) \
     in zip(pointing_files, emission_files, verif_dirs, aia_caches, eis_names):
         eis_data = eis.EISData.from_hdulist(fits.open(emission_file))
@@ -177,9 +187,9 @@ def compute(*filename, steps_file=None, io='io', cores=4, cache_aia_data=False):
         compute_eis_aia_emission, eis_wl0, eis_wl_width)
     make(filenames['pointing'], filenames['eis_aia_emission'],
         compute_pointing,
-        verif_dir=filenames['pointing_verification'],
-        aia_cache=aia_cache,
-        eis_name=filenames['eis_name'],
+        secondary_targets=(filenames['pointing_verification'],
+                           aia_cache,
+                           filenames['eis_name']),
         cores=cores,
         aia_band=aia_band,
         steps_file=steps_file)
