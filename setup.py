@@ -17,7 +17,7 @@ package_data = {
 
 setuptools.setup(
     name='eis_pointing',
-    version='2018.12.19',
+    version='2019.02.06',
     author='Gabriel Pelouze',
     author_email='gabriel.pelouze@ias.u-psud.fr',
     description='Tools to correct the pointing of Hinode/EIS',
