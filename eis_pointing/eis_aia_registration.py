@@ -263,9 +263,21 @@ class OptPointingVerif(object):
         plt.ylabel('Y [arcsec]')
         plt.savefig(filenames['diff'])
 
+    def _get_slit_offset(self):
+        slit_offsets = []
+        for offset in self.offsets:
+            if np.array(offset).ndim > 1:
+                slit_offsets.append(offset)
+        if len(slit_offsets) == 0:
+            return None
+        elif len(slit_offsets) > 1:
+            warnings.warn('Multiple slitshift steps. Plotting the first one')
+        return slit_offsets[0]
+
     def plot_slit_align(self):
         ''' plot offsets and slit coordinates '''
-        if len(self.offsets) < 4:
+        slit_offset = self._get_slit_offset()
+        if slit_offset is None:
             return
         pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, 'slit_align.pdf'))
         x_color = '#2ca02c'
@@ -274,7 +286,6 @@ class OptPointingVerif(object):
         new_color = '#000000'
         # offset
         plt.clf()
-        slit_offset = self.offsets[2]
         plt.plot(slit_offset.T[1], '.', label='X', color=x_color)
         plt.plot(slit_offset.T[0], '.', label='Y', color=y_color)
         plt.title(self.eis_name)
