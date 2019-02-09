@@ -75,31 +75,30 @@ eis_pointing.compute('eis_l0_20140810_042212', steps_file='steps/shift_only.yml'
 
 ## Installation
 
-### Prerequisite: Installing SolarSoft
+Install the latest release by running: `pip install eis_pointing`.
 
-In order to prepare and export EIS data, this tool calls external IDL routines
-from [SolarSoft]. For all features to be available, a functioning installation
-of SolarSoft containing the EIS instrument is therefore required. If SolarSoft
-is installed elsewhere than `/usr/local/ssw`, set the environment variable
-`$SSW` to the appropriate path.
+Alternatively, the latest version can be installed from GitHub by cloning this
+repository with `git clone https://github.com/gpelouze/eis_pointing`, then
+running `cd eis_pointing`, and `pip install .`.
 
-If SolarSoft is not installed, steps 1 to 3 of the [pipeline](#pipeline) will
-have to be performed manually.
+### Optional: install SolarSoft
 
-### Option 1: Installation using `pip`
+Before computing the optimal pointing, this tool can download, prepare, and
+export the EIS data by calling external IDL routines from [SolarSoft]. For
+these features to be available, a functioning installation of SolarSoft
+containing the EIS instrument is required. [Install SolarSoft][install-ssw],
+and set the environment variable `$SSW` to your installation path (by default,
+SolarSoft is assumed to be installed installed into `/usr/local/ssw`).
 
-Run `pip install eis_pointing`.
-
-### Option 2: Manual installation
-
-1. Clone this repository.
-2. Satisfy the dependencies in `requirements.txt`, eg. by running
-   `pip install -r requirements.txt`.
-3. Place `compute_eis_pointing.py` in your `$PATH`, and
-   `eis_pointing/` in your `$PYTHONPATH`.
+It is perfectly fine not to install or configure SolarSoft to run with this
+tool. In this case, you will need to manually download the EIS level0 FITS,
+prepare them into level1 FITS, and save a windata structure containing the
+Fe XII 195.119 Å line to a `.sav` file placed in
+`<io directory>/windata/eis_windata_<date>.sav`.
+See [pipeline](#pipeline) for details on how to do this.
 
 [SolarSoft]: http://www.ascl.net/1208.013
-[pySitools2]: http://medocias.github.io/pySitools2_1.0/
+[install-ssw]: http://www.lmsal.com/solarsoft/sswdoc/solarsoft/ssw_install_howto.html
 
 ## Customisation
 
@@ -113,10 +112,10 @@ By default, EIS data are coaligned with synthetic AIA raster. To coalign with a
 single AIA image, add the top-level key `single_aia_frame: True`. In this case,
 the reference AIA image chosen at the middle of the EIS raster.
 
-See files in `steps/` for examples.
+See files in [`steps/`](steps/) for examples.
 
 When no file is specified, the default behaviour is the same as using
-`steps/full_registration.yml`.
+[`steps/full_registration.yml`](steps/full_registration.yml).
 
 ## Code structure
 
