@@ -145,14 +145,25 @@ executable `compute_eis_pointing` when using the tool from the CLI, or by
    (eg. `./io/windata/windata_20140810_042212.sav`).
    Performed by `eis_pointing/export_windata.pro`.
 
-   **Alternative to steps 1-3.** Use SolarSoft to prepare the EIS raster,
-   then generate a windata structure containing Fe XII 195.119 Å and write
-   it to `<io>/windata/eis_windata_<date>.sav`. Eg:
+---
 
-   ~~~IDL
-   wd = eis_getwindata('eis_l1_20140810_042212.fits', 195.119, /refill)
-   save, wd, filename='./io/windata/windata_20140810_042212.sav'
-   ~~~
+**Alternative to steps 1-3 without SolarSoft** If SolarSoft is not installed or
+configured, you will need to separately generate a windata structure containing
+the Fe XII 195.119 Å line, and save it to
+`<io>/windata/eis_windata_<date>.sav`.
+
+Example (SSW):
+
+~~~IDL
+wd = eis_getwindata('eis_l1_20140810_042212.fits', 195.119, /refill)
+save, wd, filename='./io/windata/windata_20140810_042212.sav'
+~~~
+
+Once this is done, run the tool normally, either from the [command
+line](#from-the-command-line), or as a [Python module](#as-a-python-module). It
+will detect the existing `.sav` file, and skip steps 1-3.
+
+---
 
 4. **Compute the EIS emission**
    Generate an intensity map of the Fe XII 195.119 Å line by summing

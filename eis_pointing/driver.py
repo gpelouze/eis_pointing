@@ -48,6 +48,10 @@ def to_build(targets, sources, secondary_targets=None):
         secondary_targets_to_build = None
     return targets_to_build, sources_to_build, secondary_targets_to_build
 
+def all_targets_are_built(targets):
+    targets_to_build, _, _ = to_build(targets, targets)
+    return not targets_to_build
+
 def make(targets, sources, method, *args, secondary_targets=None, **kwargs):
     ''' Make targets from sources, only if the targets don’t exist.
 
@@ -180,9 +184,10 @@ def compute(*filename, steps_file=None, io='io', cores=4, cache_aia_data=False):
         aia_cache = [None] * len(aia_cache)
 
     # make targets
-    make(filenames['l0'], filenames['eis_name'], get_fits)
-    make(filenames['l1'], filenames['l0'], prepare_data)
-    make(filenames['windata'], filenames['l1'], export_windata, eis_wl0)
+    if not all_targets_are_built(filenames['windata']):
+        make(filenames['l0'], filenames['eis_name'], get_fits)
+        make(filenames['l1'], filenames['l0'], prepare_data)
+        make(filenames['windata'], filenames['l1'], export_windata, eis_wl0)
     make(filenames['eis_aia_emission'], filenames['windata'],
         compute_eis_aia_emission, eis_wl0, eis_wl_width)
     make(filenames['pointing'], filenames['eis_aia_emission'],
