@@ -194,7 +194,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
 
     return aia_frames, metadata
 
-def filename_from_medoc_result(res, path_prefix=''):
+def filename_from_medoc_result(res, aia_data_dir=''):
     ''' Determine the path an name of an AIA fits from the object returned by
     the sitools2 medoc client.
     '''
@@ -219,7 +219,7 @@ def filename_from_medoc_result(res, path_prefix=''):
     # define file path and name templates
     # eg path: "sdo/aia/level1/2012/06/05/"
     path = os.path.join(
-        path_prefix, 'sdo', 'aia', 'level{level}',
+        aia_data_dir, 'level{level}',
         '{year:04d}', '{month:02d}', '{day:02d}')
     # eg format: "aia.lev1.171A_2012-06-05T11-15-36.image_lev1.fits"
     filename = 'aia.lev{level}.{wave}A_{isodate}.image_lev{level}.fits'
@@ -248,11 +248,10 @@ def get_fits(aia_res, ias_location_prefix='/'):
     '''
 
     # build aia path
-    path_prefix = os.environ.get('SOLARDATA', None)
+    sdo_data_dir = os.environ.get('SDO_DATA', './sdo')
+    aia_data_dir = os.path.join(sdo_data_dir, 'aia')
     aia_dir, aia_file = filename_from_medoc_result(
-        aia_res, path_prefix=path_prefix)
-    if path_prefix is None:
-        aia_dir = '.'
+        aia_res, aia_data_dir=aia_data_dir)
 
     # build path to fits in ias_location
     ias_location = aia_res.ias_location.strip('/')

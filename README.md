@@ -173,8 +173,10 @@ will detect the existing `.sav` file, and skip steps 1-3.
 
 5. **Determine the optimal pointing** Determine the optimal pointing for EIS
    using the intensity map generated at the previous step, and AIA 193 data
-   retrieved from [Medoc][medoc-homepage] as a reference.  Results from the
-   alignment (ie. new EIS coordinates) are saved to
+   retrieved from [Medoc][medoc-homepage] as a reference.  (The AIA FITS are
+   downloaded to `./sdo/aia`, or to `$SDO_DATA/aia/` if the environment
+   variable `$SDO_DATA` is set set.)
+   Results from the alignment (ie. new EIS coordinates) are saved to
    `<io>/pointing/eis_pointing_<date>.fits`. Diagnostics plots, correlation
    cubes, as well as a YAML file containing the results from the coregistration
    are also saved to `<io>/pointing_verification/<date>/`.  Performed by
