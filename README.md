@@ -2,6 +2,9 @@
 
 Tools to correct the pointing of Hinode/EIS.
 
+This Python package implements the method described in Pelouze et al., 2019
+([arXiv:1903.11923](https://arxiv.org/abs/1903.11923)).
+
 ## Usage
 
 ### From the command line
@@ -213,6 +216,10 @@ will detect the existing `.sav` file, and skip steps 1-3.
 - `plots`: help generate plots at step 4.
 - `sun`: generic solar computations.
 
-## License
+## Reference / License
+
+If you use this package for a publication, please acknowledge the following
+paper: Pelouze et al., 2019
+([arXiv:1903.11923](https://arxiv.org/abs/1903.11923)).
 
 This package is released under a MIT open source licence. See `LICENSE.txt`.
