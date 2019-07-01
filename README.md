@@ -2,8 +2,8 @@
 
 Tools to correct the pointing of Hinode/EIS.
 
-This Python package implements the method described in Pelouze et al., 2019
-([arXiv:1903.11923](https://arxiv.org/abs/1903.11923)).
+This Python package implements the method described in the paper
+[Pelouze et al. 2019, Sol Phys 294:59](https://ui.adsabs.harvard.edu/abs/2019SoPh..294...59P/abstract).
 
 ## Usage
 
@@ -219,7 +219,7 @@ will detect the existing `.sav` file, and skip steps 1-3.
 ## Reference / License
 
 If you use this package for a publication, please acknowledge the following
-paper: Pelouze et al., 2019
-([arXiv:1903.11923](https://arxiv.org/abs/1903.11923)).
+paper:
+[Pelouze et al. 2019, Sol Phys 294:59](https://ui.adsabs.harvard.edu/abs/2019SoPh..294...59P/abstract).
 
 This package is released under a MIT open source licence. See `LICENSE.txt`.
