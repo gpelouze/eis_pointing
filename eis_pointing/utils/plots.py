@@ -66,6 +66,7 @@ def plot_map(ax, img, coordinates=None, **kwargs):
     im = ax.imshow(
         img,
         extent=extent,
+        origin='lower',
         **kwargs)
 
     return im
