@@ -7,8 +7,7 @@ import re
 
 from astropy import time
 import numpy as np
-import sitools2.clients.sdo_client_medoc as md
-
+from sitools2 import SdoClientMedoc
 from . import num
 
 verb = False
@@ -119,7 +118,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
         contains metadata retrieved from the Medoc database for each search
         result.
     '''
-
+    md = SdoClientMedoc()
     if increase_date_range:
         reg = re.compile(
             '(?:(?P<days>\d+)\s*(?:d|day|days))?\s*'
@@ -138,7 +137,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
         dates = [d1 - cadence_timedelta, d2 + cadence_timedelta]
 
     # Get a list of all AIA data
-    aia_frames = md.media_search(
+    aia_frames = md.search(
         dates=dates,
         waves=[wl0],
         cadence=[cadence],
@@ -176,9 +175,9 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
                 ]
         # query metadata for each item in aia_frames, handling possible
         # duplicates in this list
-        metadata = md.media_metadata_search(
+        metadata = md.sdo_metadata_search(
             keywords=keywords + ['recnum'],
-            media_data_list=aia_frames,
+            data_list=aia_frames,
             )
         # index metadata with their recnum
         metadata = {meta['recnum']: meta for meta in metadata}
