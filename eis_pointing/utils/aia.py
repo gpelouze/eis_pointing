@@ -175,7 +175,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
                 ]
         # query metadata for each item in aia_frames, handling possible
         # duplicates in this list
-        metadata = md.metadata_search(
+        metadata = md.sdo_metadata_search(
             keywords=keywords + ['recnum'],
             data_list=aia_frames,
             )
