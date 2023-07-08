@@ -229,10 +229,10 @@ class OptPointingVerif(object):
         # plot maps
         pp = backend_pdf.PdfPages(filenames['intensity'])
         intensity_plots = (
-            (eis_int, 'EIS'),
-            (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
+            (eis_int, 'EIS', "eis"),
+            (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band), "aia"),
             )
-        for int_map, title in intensity_plots:
+        for int_map, title, figmarker in intensity_plots:
             plt.clf()
             plots.plot_map(
                 plt.gca(),
@@ -241,7 +241,8 @@ class OptPointingVerif(object):
             plt.title(title)
             plt.xlabel('X [arcsec]')
             plt.ylabel('Y [arcsec]')
-            plt.savefig(pp)
+            fig_name = filenames['intensity'].replace(".pdf", f"{figmarker}.pdf")
+            plt.savefig(fig_name)
         pp.close()
 
         # plot difference
@@ -295,10 +296,10 @@ class OptPointingVerif(object):
         plt.savefig(pp)
         # new coordinates
         plots = [
-            ('X', self.pointings[-1].x, self.pointings[0].x),
-            ('Y', self.pointings[-1].y, self.pointings[0].y),
+            ('X', self.pointings[-1].x, self.pointings[0].x, 'x_axis'),
+            ('Y', self.pointings[-1].y, self.pointings[0].y, 'y_axis'),
             ]
-        for name, aligned, original in plots:
+        for name, aligned, original, fig_marker in plots:
             plt.clf()
             plt.plot(original[0], ',', label='original ' + name, color=old_color)
             plt.plot(aligned[0],  ',', label='aligned ' + name,  color=new_color)
@@ -306,7 +307,8 @@ class OptPointingVerif(object):
             plt.title(self.eis_name)
             plt.xlabel('slit position')
             plt.ylabel(name + ' [arcsec]')
-            plt.savefig(pp)
+            fig_name = os.path.join(self.verif_dir, 'slit_align.pdf').replace('pdf', f'{fig_marker}.pdf')
+            plt.savefig(fig_name)
         pp.close()
 
 
