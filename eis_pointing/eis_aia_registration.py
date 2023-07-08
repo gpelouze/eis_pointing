@@ -293,7 +293,7 @@ class OptPointingVerif(object):
         plt.xlabel('slit position')
         plt.ylabel('offset [arcsec]')
         plt.legend()
-        plt.savefig(pp)
+        plt.savefig(os.path.join(self.verif_dir, 'slit_align.pdf'))
         # new coordinates
         plots = [
             ('X', self.pointings[-1].x, self.pointings[0].x, 'x_axis'),
