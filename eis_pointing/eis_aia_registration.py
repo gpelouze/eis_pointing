@@ -8,7 +8,7 @@ import numpy as np
 import scipy.interpolate as si
 
 import matplotlib as mpl
-from matplotlib.backends import backend_pdf
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 
 from .utils import aia_raster
@@ -227,22 +227,23 @@ class OptPointingVerif(object):
             eis_int, aia_int, mpl.colors.LogNorm)
 
         # plot maps
-        pp = backend_pdf.PdfPages(filenames['intensity'])
-        intensity_plots = (
-            (eis_int, 'EIS'),
-            (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
-            )
-        for int_map, title in intensity_plots:
-            plt.clf()
-            plots.plot_map(
-                plt.gca(),
-                int_map, coordinates=[x, y],
-                cmap='gray', norm=norm)
-            plt.title(title)
-            plt.xlabel('X [arcsec]')
-            plt.ylabel('Y [arcsec]')
-            plt.savefig(pp)
-        pp.close()
+        with PdfPages(filenames['intensity']) as pp:
+
+          intensity_plots = (
+              (eis_int, 'EIS'),
+              (aia_int, 'synthetic raster from AIA {}'.format(self.aia_band)),
+              )
+          for int_map, title in intensity_plots:
+              plt.clf()
+              plots.plot_map(
+                  plt.gca(),
+                  int_map, coordinates=[x, y],
+                  cmap='gray', norm=norm)
+              plt.title(title)
+              plt.xlabel('X [arcsec]')
+              plt.ylabel('Y [arcsec]')
+              pp.savefig()
+
 
         # plot difference
         diff = eis_int - aia_int
@@ -279,35 +280,35 @@ class OptPointingVerif(object):
         slit_offset = self._get_slit_offset()
         if slit_offset is None:
             return
-        pp = backend_pdf.PdfPages(os.path.join(self.verif_dir, 'slit_align.pdf'))
-        x_color = '#2ca02c'
-        y_color = '#1f77b4'
-        old_color = '#d62728'
-        new_color = '#000000'
-        # offset
-        plt.clf()
-        plt.plot(slit_offset.T[1], '.', label='X', color=x_color)
-        plt.plot(slit_offset.T[0], '.', label='Y', color=y_color)
-        plt.title(self.eis_name)
-        plt.xlabel('slit position')
-        plt.ylabel('offset [arcsec]')
-        plt.legend()
-        plt.savefig(pp)
-        # new coordinates
-        plots = [
-            ('X', self.pointings[-1].x, self.pointings[0].x),
-            ('Y', self.pointings[-1].y, self.pointings[0].y),
-            ]
-        for name, aligned, original in plots:
-            plt.clf()
-            plt.plot(original[0], ',', label='original ' + name, color=old_color)
-            plt.plot(aligned[0],  ',', label='aligned ' + name,  color=new_color)
-            plt.legend()
-            plt.title(self.eis_name)
-            plt.xlabel('slit position')
-            plt.ylabel(name + ' [arcsec]')
-            plt.savefig(pp)
-        pp.close()
+        with PdfPages(os.path.join(self.verif_dir, 'slit_align.pdf')) as pp:
+          x_color = '#2ca02c'
+          y_color = '#1f77b4'
+          old_color = '#d62728'
+          new_color = '#000000'
+          # offset
+          plt.clf()
+          plt.plot(slit_offset.T[1], '.', label='X', color=x_color)
+          plt.plot(slit_offset.T[0], '.', label='Y', color=y_color)
+          plt.title(self.eis_name)
+          plt.xlabel('slit position')
+          plt.ylabel('offset [arcsec]')
+          plt.legend()
+          pp.savefig()
+          # new coordinates
+          plots = [
+              ('X', self.pointings[-1].x, self.pointings[0].x),
+              ('Y', self.pointings[-1].y, self.pointings[0].y),
+              ]
+          for name, aligned, original in plots:
+              plt.clf()
+              plt.plot(original[0], ',', label='original ' + name, color=old_color)
+              plt.plot(aligned[0],  ',', label='aligned ' + name,  color=new_color)
+              plt.legend()
+              plt.title(self.eis_name)
+              plt.xlabel('slit position')
+              plt.ylabel(name + ' [arcsec]')
+              pp.savefig()
+
 
 
 def shift_step(x, y, eis_int, aia_int, cores=None, **kwargs):
@@ -426,6 +427,7 @@ def optimal_pointing(eis_data, cores=None, aia_band=None,
         file_cache=aia_cache,
         single_frame=single_aia_frame,
         )
+
     raster_builder.get_data()
 
     # degrade raster_builder resolution to 3 arcsec (see DelZanna+2011)
