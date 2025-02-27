@@ -8,7 +8,7 @@ import sys
 
 import numpy as np
 import scipy.io as sio
-
+import scipy
 from . import num
 
 class IDLFunction(object):
@@ -172,7 +172,7 @@ class IDLStructure(dict):
         '''
         if isinstance(data, str):
             data = sio.readsav(data)
-        if isinstance(data, sio.idl.AttrDict):
+        if isinstance(data, scipy.io._idl.AttrDict):
             if len(data.keys()) == 1:
                 data = list(data.values())[0]
             else:
