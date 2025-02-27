@@ -7,7 +7,8 @@ import re
 
 from astropy import time
 import numpy as np
-from sitools2 import SdoClientMedoc
+import sitools2.clients.sdo_client_medoc as md
+import os
 from . import num
 
 verb = False
@@ -78,7 +79,7 @@ def sdotime_to_utc(sdo_time):
     return t_tai.utc.datetime
 
 
-def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
+def query_aia_data(dates, wl0, nb_res_max=1000, cadence='1 min',
                    increase_date_range=True, keywords='default'):
     ''' Get a list of AIA data within given time limits.
 
@@ -118,7 +119,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
         contains metadata retrieved from the Medoc database for each search
         result.
     '''
-    md = SdoClientMedoc()
+
     if increase_date_range:
         reg = re.compile(
             '(?:(?P<days>\d+)\s*(?:d|day|days))?\s*'
@@ -135,16 +136,20 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
             raise ValueError('could not parse cadence')
         d1, d2 = dates
         dates = [d1 - cadence_timedelta, d2 + cadence_timedelta]
-
+    
+    if isinstance(dates, tuple) & len(dates) == 1:
+        dates = dates[0]
     # Get a list of all AIA data
-    aia_frames = md.search(
+    sdo = md.SdoClientMedoc()
+    aia_frames = sdo.search(
         dates=dates,
         waves=[wl0],
         cadence=[cadence],
         nb_res_max=nb_res_max,
         )
     msg = 'Reached AIA maximum results number.'
-    assert (nb_res_max == -1) or (len(aia_frames) < nb_res_max), msg
+    assert (nb_res_max == 1000) or (len(aia_frames) < nb_res_max), msg
+    
 
     # remove frames with exposure times that are too short or too long
     exptime = np.array([sr.exptime for sr in aia_frames])
@@ -165,7 +170,7 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
     if keywords is None:
         metadata = {}
     else:
-        if keywords is 'default':
+        if keywords == 'default':
             keywords = [
                 'date__obs', 'exptime', 'int_time',
                 'ctype1', 'cunit1', 'crpix1', 'crval1', 'cdelt1',
@@ -175,7 +180,8 @@ def query_aia_data(dates, wl0, nb_res_max=-1, cadence='1 min',
                 ]
         # query metadata for each item in aia_frames, handling possible
         # duplicates in this list
-        metadata = md.sdo_metadata_search(
+        sdo = md.SdoClientMedoc()
+        metadata = sdo.sdo_metadata_search(
             keywords=keywords + ['recnum'],
             data_list=aia_frames,
             )
@@ -234,7 +240,9 @@ def download_fits(medoc_result, dirname, filename):
     '''
     if verb:
         print('AIA: downloading to {}'.format(os.path.join(dirname, filename)))
-    medoc_result.get_file(target_dir=dirname, filename=filename)
+    medoc_result.get_file(target_dir=dirname, segment=['image_lev1'])
+    os.rename(os.path.join(dirname, f"aia.lev1_{filename[9:33]}_{medoc_result.recnum}.image_lev1.fits"), os.path.join(dirname,filename))
+    
 
 def get_fits(aia_res, ias_location_prefix='/'):
     ''' Get the path to the fits file for a md.Sdo_data object object.
