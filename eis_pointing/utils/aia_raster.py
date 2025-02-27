@@ -175,6 +175,7 @@ class SyntheticRasterBuilder(object):
             progress = (i + 1) / len(qr)
             print('Opening AIA frames: {:.1%}'.format(progress), end='\r')
             fits_path = aia.get_fits(aia_frame)
+
             primary, img = fits.open(fits_path)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
