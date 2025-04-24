@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eis_pointing"
+version = "2019.12.18"
+dependencies = [
+    "astropy>=3.0",
+    "python-dateutil>=2.7",
+    "matplotlib>=2.0",
+    "numpy>=1.15",
+    "requests>=2.19",
+    "scipy>=1.0",
+    "PyYAML>=3.13",
+    "pySitools2==1.0.0",
+]
+requires-python = ">=3.5"
+authors = [
+    { name = "Gabriel Pelouze", email = "gabriel.pelouze@ias.u-psud.fr" },
+]
+description = "Tools to correct the pointing of Hinode/EIS"
+readme = "README.md"
+license = "MIT"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+[project.urls]
+Homepage = "https://github.com/gpelouze/eis_pointing"
+
+[project.scripts]
+compute_eis_pointing = "eis_pointing.driver_cli:main"
+
+[tool.setuptools.packages.find]
+where = [""]
+
+[tool.setuptools.package-data]
+eis_pointing = ["*.pro"]
