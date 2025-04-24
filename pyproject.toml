@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eis_pointing"
-version = "2019.12.18"
+version = "2025.04.25"
 dependencies = [
     "astropy>=3.0",
     "python-dateutil>=2.7",
